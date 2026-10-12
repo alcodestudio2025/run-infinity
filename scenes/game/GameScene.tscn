@@ -1,0 +1,40 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/GameScene.gd" id="1_gamescene"]
+[ext_resource type="PackedScene" path="res://scenes/game/World.tscn" id="2_world"]
+[ext_resource type="PackedScene" path="res://scenes/game/CameraRig.tscn" id="3_camerarig"]
+[ext_resource type="Script" path="res://scripts/core/WorldVelocityController.gd" id="4_velocity"]
+[ext_resource type="Script" path="res://scripts/core/DifficultyDirector.gd" id="5_difficulty"]
+[ext_resource type="Script" path="res://scripts/core/RunLoop.gd" id="6_runloop"]
+[ext_resource type="Script" path="res://scripts/core/SegmentManager.gd" id="7_segment_manager"]
+[ext_resource type="Script" path="res://scripts/core/ModuleSpawner.gd" id="8_module_spawner"]
+[ext_resource type="Script" path="res://scripts/core/WorldScroller.gd" id="9_scroller"]
+
+[node name="GameScene" type="Node2D"]
+script = ExtResource("1_gamescene")
+
+[node name="World" parent="." instance=ExtResource("2_world")]
+
+[node name="CameraRig" parent="." instance=ExtResource("3_camerarig")]
+
+[node name="PlayerRoot" type="Node2D" parent="."]
+
+[node name="UIRoot" type="CanvasLayer" parent="."]
+
+[node name="WorldVelocityController" type="Node" parent="."]
+script = ExtResource("4_velocity")
+
+[node name="DifficultyDirector" type="Node" parent="."]
+script = ExtResource("5_difficulty")
+
+[node name="RunLoop" type="Node" parent="."]
+script = ExtResource("6_runloop")
+
+[node name="SegmentManager" type="Node" parent="."]
+script = ExtResource("7_segment_manager")
+
+[node name="ModuleSpawner" type="Node" parent="."]
+script = ExtResource("8_module_spawner")
+
+[node name="WorldScroller" type="Node" parent="."]
+script = ExtResource("9_scroller")

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CameraRig.gd" id="1_camerarig"]
+
+[node name="CameraRig" type="Node2D"]
+script = ExtResource("1_camerarig")
+smoothing_speed = 8.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

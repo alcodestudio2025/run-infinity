@@ -1,0 +1,22 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+*.translation
+
+# Import cache / OS
+.import/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets / local env
+.env
+.env.*
+*.pem
+*.keystore
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~

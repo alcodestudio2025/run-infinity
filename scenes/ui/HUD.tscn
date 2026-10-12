@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="TopLeftContainer" type="MarginContainer" parent="."]
+offset_right = 640.0
+offset_bottom = 220.0
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+
+[node name="Content" type="VBoxContainer" parent="TopLeftContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ScoreLabel" type="Label" parent="TopLeftContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Score: 0"
+
+[node name="DistanceLabel" type="Label" parent="TopLeftContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Distance: 0"
+
+[node name="StateLabel" type="Label" parent="TopLeftContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = ""

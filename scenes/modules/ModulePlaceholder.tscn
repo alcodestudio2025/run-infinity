@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/modules/ModulePlaceholder.gd" id="1_placeholder"]
+
+[node name="ModulePlaceholder" type="Node2D"]
+script = ExtResource("1_placeholder")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.55, 0.55, 0.55, 1)
+polygon = PackedVector2Array(-60, -40, 60, -40, 60, 40, -60, 40)

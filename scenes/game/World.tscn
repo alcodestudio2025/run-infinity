@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/World.gd" id="1_world"]
+[ext_resource type="PackedScene" path="res://scenes/game/Ground.tscn" id="2_ground"]
+
+[node name="World" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="BackgroundRoot" type="Node2D" parent="."]
+
+[node name="GameplayRoot" type="Node2D" parent="."]
+
+[node name="Ground" parent="GameplayRoot" instance=ExtResource("2_ground")]
+
+[node name="ChunkRoot" type="Node2D" parent="."]
+
+[node name="FXRoot" type="Node2D" parent="."]
