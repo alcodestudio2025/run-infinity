@@ -158,15 +158,23 @@ Poi riapri in Godot (o ricarica il progetto se era già aperto).
 
 ---
 
-## Push delle modifiche (da un PC di sviluppo)
+## Push delle modifiche (workflow consigliato)
+
+Preferisci **feature branch + Pull Request verso `main`** (evita push diretti e force-push su `main`):
 
 ```bash
-cd C:\Dev\run-infinity
-git status
+cd C:\Dev\run-infinity   # o il path del clone
+git checkout main
+git pull origin main
+git checkout -b feature/descrizione-breve
+# ... modifiche ...
 git add -A
 git commit -m "Descrivi la modifica"
-git push origin main
+git push -u origin feature/descrizione-breve
+# Apri una PR su GitHub verso main
 ```
+
+Dettagli: vedi i docs del Project Cursor (`workflow-git.md` / `project-context.md`) quando lavori in cloud.
 
 ### Prima volta su un nuovo PC con commit
 
