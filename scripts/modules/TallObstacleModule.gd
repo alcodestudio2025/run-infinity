@@ -65,8 +65,8 @@ func _on_body_entered(body: Node2D) -> void:
 	if player == null or not player.is_alive():
 		return
 
-	## Airborne clears the tall curb (same jump-clear rule as low curb).
-	if not player.is_on_floor():
+	## Same jump-clear rule as low curb (height + airborne).
+	if GameConfig.is_jump_clearing_curb(player):
 		return
 
 	_has_triggered = true

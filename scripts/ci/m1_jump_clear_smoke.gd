@@ -6,10 +6,10 @@ extends SceneTree
 const MAX_FRAMES: int = 60 * 45
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
-## First obstacle is segment index 6 (safe start 4, then %3==0) → ~12300 distance.
-const JUMP_WINDOW_START: float = 11950.0
-const JUMP_WINDOW_END: float = 12280.0
-const SURVIVE_DISTANCE: float = 13500.0
+## First hazard ≈ segment 3 after safe-start 2 (see GameConfig.estimate_first_hazard_distance).
+const JUMP_WINDOW_START: float = 6000.0
+const JUMP_WINDOW_END: float = 6500.0
+const SURVIVE_DISTANCE: float = 7400.0
 
 
 func _initialize() -> void:

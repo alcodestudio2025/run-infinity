@@ -2,9 +2,10 @@ name: Godot CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "cursor/**"]
   pull_request:
-    branches: [main]
+    ## Include stacked feature bases (e.g. M2 → M1 branch) so CI runs before main.
+    branches: [main, "cursor/**"]
 
 jobs:
   headless-check:

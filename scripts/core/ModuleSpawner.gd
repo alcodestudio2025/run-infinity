@@ -43,11 +43,9 @@ func populate_segment(segment: Segment, segment_index: int) -> void:
 
 	if is_hazard_slot:
 		_attach_hazard(segment, module_root, segment_index)
-		## Occasional coin after a hazard at mid+ difficulty (readable spacing).
-		if _can_coins() and segment_index % 2 == 1:
-			_attach_coin(segment, module_root, 2)
 		return
 
+	## Coins only on gap segments — never stacked on the same slice as a hazard.
 	if _can_coins() and _is_coin_gap_slot(segment_index, stride):
 		_attach_coin(segment, module_root, segment_index % 3)
 
@@ -94,8 +92,8 @@ func _pick_hazard_pattern(segment_index: int) -> HazardPattern:
 	if _difficulty != null:
 		level = _difficulty.current_level
 
-	## Preserve M1 first-hazard feel: early absolute slots stay low curbs.
-	if segment_index <= GameConfig.SAFE_START_SEGMENT_COUNT + 2:
+	## Early run stays readable: only low curbs until the player learns the jump.
+	if segment_index <= GameConfig.EARLY_LOW_CURB_SEGMENT_MAX:
 		return HazardPattern.LOW_CURB
 
 	var roll: int = segment_index % 10

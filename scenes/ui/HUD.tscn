@@ -31,6 +31,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Speed: 0"
 
+[node name="DifficultyLabel" type="Label" parent="TopLeftContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Difficulty: 0"
+
 [node name="StateLabel" type="Label" parent="TopLeftContainer/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28

@@ -8,10 +8,10 @@ const RUN_FRAMES: int = 60 * 55
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
 ## Survive past the first low curb, then keep running into mid-difficulty.
-const SURVIVE_PAST_FIRST: float = 13500.0
-const TARGET_DISTANCE: float = 16000.0
-const JUMP_WINDOW_START: float = 11950.0
-const JUMP_WINDOW_END: float = 12280.0
+const SURVIVE_PAST_FIRST: float = 7500.0
+const TARGET_DISTANCE: float = 12000.0
+const JUMP_WINDOW_START: float = 6000.0
+const JUMP_WINDOW_END: float = 6500.0
 
 
 func _initialize() -> void:

@@ -47,6 +47,7 @@ func _physics_process(_delta: float) -> void:
 	_hud.update_distance(distance)
 	_hud.update_score(score)
 	_hud.update_speed(_velocity_controller.current_speed)
+	_hud.update_difficulty(_difficulty_director.current_level)
 	_hud.show_running()
 
 

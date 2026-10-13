@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var score_label: Label = $TopLeftContainer/Content/ScoreLabel
 @onready var distance_label: Label = $TopLeftContainer/Content/DistanceLabel
 @onready var speed_label: Label = $TopLeftContainer/Content/SpeedLabel
+@onready var difficulty_label: Label = $TopLeftContainer/Content/DifficultyLabel
 @onready var state_label: Label = $TopLeftContainer/Content/StateLabel
 @onready var jumps_label: Label = $TopLeftContainer/Content/JumpsLabel
 @onready var game_over_label: Label = $GameOverCenter/GameOverLabel
@@ -48,6 +49,11 @@ func update_speed(speed: float) -> void:
 		speed_label.text = "Speed: %d" % int(speed)
 
 
+func update_difficulty(level: int) -> void:
+	if difficulty_label != null:
+		difficulty_label.text = "Difficulty: %d" % maxi(level, 0)
+
+
 func show_running() -> void:
 	if state_label != null:
 		state_label.text = "State: RUN"
@@ -75,4 +81,5 @@ func reset() -> void:
 	update_score(0)
 	update_distance(0.0)
 	update_speed(0.0)
+	update_difficulty(0)
 	show_running()

@@ -65,8 +65,8 @@ func _on_body_entered(body: Node2D) -> void:
 	if player == null or not player.is_alive():
 		return
 
-	## Airborne clears the curb (wide timing window for M1 jump feel).
-	if not player.is_on_floor():
+	## Jump / height clear — floor-only checks flake under hitchy cloud FPS.
+	if GameConfig.is_jump_clearing_curb(player):
 		return
 
 	_has_triggered = true
