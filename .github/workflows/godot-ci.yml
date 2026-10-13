@@ -2,9 +2,10 @@ name: Godot CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "cursor/**"]
   pull_request:
-    branches: [main]
+    ## Include stacked feature bases (e.g. M2 → M1 branch) so CI runs before main.
+    branches: [main, "cursor/**"]
 
 jobs:
   headless-check:
@@ -57,3 +58,9 @@ jobs:
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_nojump_death_smoke.gd 2>&1 | tee /tmp/m1-nojump-smoke.log
           grep -q 'M1 nojump-death smoke PASS' /tmp/m1-nojump-smoke.log
+
+      - name: M2 modules smoke (variety + difficulty + continuity)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd 2>&1 | tee /tmp/m2-smoke.log
+          grep -q 'M2 modules smoke PASS' /tmp/m2-smoke.log

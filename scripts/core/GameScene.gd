@@ -22,10 +22,12 @@ const HUD_SCENE: PackedScene = preload("res://scenes/ui/HUD.tscn")
 var _player: Player
 var _hud: HUD
 var _game_over_handled: bool = false
+var _bonus_score: int = 0
 
 
 func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
+	EventBus.player_collected_coin.connect(_on_player_collected_coin)
 	_run_loop.setup(_velocity_controller, _difficulty_director)
 	_velocity_controller.start_run()
 	_setup_ground()
@@ -41,16 +43,19 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var distance: float = _velocity_controller.distance_travelled
-	var score: int = GameConfig.distance_to_score(distance)
+	var score: int = _compute_score(distance)
 	_hud.update_distance(distance)
 	_hud.update_score(score)
 	_hud.update_speed(_velocity_controller.current_speed)
+	_hud.update_difficulty(_difficulty_director.current_level)
 	_hud.show_running()
 
 
 func _exit_tree() -> void:
 	if EventBus.player_died.is_connected(_on_player_died):
 		EventBus.player_died.disconnect(_on_player_died)
+	if EventBus.player_collected_coin.is_connected(_on_player_collected_coin):
+		EventBus.player_collected_coin.disconnect(_on_player_collected_coin)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -88,6 +93,7 @@ func restart_run() -> void:
 		return
 
 	_game_over_handled = false
+	_bonus_score = 0
 
 	_velocity_controller.reset()
 	_difficulty_director.reset()
@@ -113,7 +119,7 @@ func _on_player_died() -> void:
 	_game_over_handled = true
 
 	var distance: float = _velocity_controller.distance_travelled
-	var final_score: int = GameConfig.distance_to_score(distance)
+	var final_score: int = _compute_score(distance)
 
 	_velocity_controller.stop_run()
 	_world_scroller.stop()
@@ -123,6 +129,15 @@ func _on_player_died() -> void:
 	if _hud != null:
 		_hud.show_game_over(final_score, distance)
 	_log_debug("GAME OVER - Score: %d - Distance: %0.1f" % [final_score, distance])
+
+
+func _on_player_collected_coin(value: int) -> void:
+	_bonus_score += maxi(value, 0)
+	EventBus.score_changed.emit(_compute_score(_velocity_controller.distance_travelled))
+
+
+func _compute_score(distance: float) -> int:
+	return GameConfig.distance_to_score(distance) + _bonus_score
 
 
 func _setup_ground() -> void:
@@ -135,6 +150,7 @@ func _setup_ground() -> void:
 
 
 func _setup_segment_pipeline() -> void:
+	_module_spawner.setup(_difficulty_director)
 	_segment_manager.setup(_world, _module_spawner)
 	_world_scroller.setup(_world, _velocity_controller, _segment_manager)
 	_world_scroller.start()

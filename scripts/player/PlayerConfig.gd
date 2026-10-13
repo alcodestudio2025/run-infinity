@@ -7,10 +7,11 @@ extends Resource
 @export var gravity: float = GameConfig.PLAYER_GRAVITY
 @export var jump_velocity: float = GameConfig.PLAYER_JUMP_VELOCITY
 @export var max_fall_speed: float = GameConfig.PLAYER_MAX_FALL_SPEED
-@export var coyote_time: float = GameConfig.COYOTE_TIME
-@export var jump_buffer_time: float = GameConfig.JUMP_BUFFER
-@export var slide_duration: float = GameConfig.SLIDE_DURATION
-@export var slide_input_drag_threshold: float = GameConfig.SLIDE_INPUT_DRAG_THRESHOLD
+## Defaults track GameConfig; resources created at runtime pick these up.
+@export var coyote_time: float = 0.26
+@export var jump_buffer_time: float = 0.24
+@export var slide_duration: float = 0.45
+@export var slide_input_drag_threshold: float = 64.0
 @export var ground_y: float = GameConfig.GROUND_Y
 @export var ideal_screen_ratio: float = GameConfig.PLAYER_SCREEN_RATIO
 @export var standing_hitbox_size: Vector2 = GameConfig.PLAYER_STANDING_HITBOX_SIZE

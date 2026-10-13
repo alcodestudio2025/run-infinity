@@ -15,13 +15,13 @@ const DEBUG_LOG: bool = false
 
 # -- World movement ------------------------------------------------------------
 
-## Tuned for a ~30–60s run: start at base, ease toward max over distance.
-const BASE_WORLD_SPEED: float = 340.0
-const MAX_WORLD_SPEED: float = 620.0
+## Tuned for a ~30–60s run: start readable, ease toward max after first hazards.
+const BASE_WORLD_SPEED: float = 320.0
+const MAX_WORLD_SPEED: float = 580.0
 ## How fast current_speed chases target_speed (px/s²).
-const WORLD_ACCELERATION: float = 180.0
-## Distance at which target speed reaches MAX_WORLD_SPEED.
-const SPEED_RAMP_DISTANCE: float = 9000.0
+const WORLD_ACCELERATION: float = 160.0
+## Keep early curbs below top speed so the first jump is human-readable.
+const SPEED_RAMP_DISTANCE: float = 14000.0
 
 
 static func get_target_speed_for_distance(distance: float) -> float:
@@ -37,9 +37,12 @@ const SEGMENT_GROUND_HEIGHT: float = 40.0
 const SEGMENT_ACTIVE_COUNT: int = 4
 const SEGMENT_RECYCLE_MARGIN: float = 64.0
 ## First N segments spawn no obstacles so the player can settle and learn jump.
-const SAFE_START_SEGMENT_COUNT: int = 4
+## Keep short so the first curb arrives while speed is still mid-ramp.
+const SAFE_START_SEGMENT_COUNT: int = 2
 const MODULE_PLACEHOLDER_MAX_COUNT: int = 2
 const MODULE_PLACEHOLDER_LOCAL_Y: float = -90.0
+## Early hazard slots forced to low curb (segment index inclusive).
+const EARLY_LOW_CURB_SEGMENT_MAX: int = 5
 
 static func get_module_placeholder_local_x_ratios() -> Array[float]:
 	return [-0.35, 0.35]
@@ -55,14 +58,90 @@ static func get_module_placeholder_local_position(
 
 
 ## Low curb-style hazard: easy to clear, still punishes standing into it.
-const OBSTACLE_SIZE: Vector2 = Vector2(70.0, 48.0)
-const OBSTACLE_LOCAL_X_RATIO: float = 0.20
-const OBSTACLE_LOCAL_Y: float = -24.0
+const OBSTACLE_SIZE: Vector2 = Vector2(52.0, 36.0)
+const OBSTACLE_LOCAL_X_RATIO: float = 0.12
+const OBSTACLE_LOCAL_Y: float = -18.0
 const OBSTACLE_COLOR: Color = Color(0.85, 0.2, 0.2, 1.0)
+## Feet above standing origin by this much counts as jump-clear (floor check alone is flaky).
+const JUMP_CLEAR_HEIGHT: float = 28.0
+
+## Tall curb: same footing, needs a committed jump.
+const TALL_OBSTACLE_SIZE: Vector2 = Vector2(64.0, 96.0)
+const TALL_OBSTACLE_LOCAL_X_RATIO: float = 0.18
+const TALL_OBSTACLE_LOCAL_Y: float = -48.0
+const TALL_OBSTACLE_COLOR: Color = Color(0.78, 0.28, 0.12, 1.0)
+
+## Overhead bar: standing hits it; slide duck clears by geometry.
+const OVERHEAD_OBSTACLE_SIZE: Vector2 = Vector2(140.0, 52.0)
+const OVERHEAD_OBSTACLE_LOCAL_X_RATIO: float = 0.22
+const OVERHEAD_OBSTACLE_LOCAL_Y: float = -96.0
+const OVERHEAD_OBSTACLE_COLOR: Color = Color(0.55, 0.15, 0.55, 1.0)
+
+## Double curb spacing inside one segment (local x ratios).
+const DOUBLE_CURB_LOCAL_X_RATIOS: Array[float] = [-0.28, 0.28]
+
+## Coin collectible (high enough to grab with a normal jump arc).
+const COIN_SIZE: Vector2 = Vector2(36.0, 36.0)
+const COIN_LOCAL_Y: float = -130.0
+const COIN_COLOR: Color = Color(0.95, 0.78, 0.15, 1.0)
+const COIN_SCORE_VALUE: int = 250
+const COIN_LOCAL_X_RATIOS: Array[float] = [-0.32, 0.05, 0.38]
 
 
 static func get_obstacle_local_position(segment_length: float) -> Vector2:
 	return Vector2(segment_length * OBSTACLE_LOCAL_X_RATIO, OBSTACLE_LOCAL_Y)
+
+
+static func get_tall_obstacle_local_position(segment_length: float) -> Vector2:
+	return Vector2(segment_length * TALL_OBSTACLE_LOCAL_X_RATIO, TALL_OBSTACLE_LOCAL_Y)
+
+
+static func get_overhead_obstacle_local_position(segment_length: float) -> Vector2:
+	return Vector2(segment_length * OVERHEAD_OBSTACLE_LOCAL_X_RATIO, OVERHEAD_OBSTACLE_LOCAL_Y)
+
+
+static func get_coin_local_position(segment_length: float, slot_index: int = 0) -> Vector2:
+	var ratios: Array[float] = COIN_LOCAL_X_RATIOS
+	var ratio: float = ratios[slot_index % ratios.size()]
+	return Vector2(segment_length * ratio, COIN_LOCAL_Y)
+
+
+static func get_double_curb_local_positions(segment_length: float) -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	for ratio: float in DOUBLE_CURB_LOCAL_X_RATIOS:
+		positions.append(Vector2(segment_length * ratio, OBSTACLE_LOCAL_Y))
+	return positions
+
+
+## First hazard segment index at base stride (used by smokes / docs).
+static func get_first_hazard_segment_index() -> int:
+	var index: int = SAFE_START_SEGMENT_COUNT
+	while index % HAZARD_STRIDE_BASE != 0:
+		index += 1
+	return index
+
+
+## Approximate scroll distance when the player meets the first low curb.
+static func estimate_first_hazard_distance() -> float:
+	var index: int = get_first_hazard_segment_index()
+	var center_x: float = float(index) * SEGMENT_LENGTH + SEGMENT_LENGTH * 0.5
+	var obstacle_x: float = center_x + SEGMENT_LENGTH * OBSTACLE_LOCAL_X_RATIO
+	var player_x: float = VIEWPORT_WIDTH * PLAYER_SCREEN_RATIO
+	return maxf(obstacle_x - player_x, 0.0)
+
+
+static func get_player_standing_y() -> float:
+	return GROUND_Y - PLAYER_FEET_OFFSET
+
+
+## True when the player is high enough (or not on floor) to clear a ground curb.
+static func is_jump_clearing_curb(player: Node2D) -> bool:
+	if player == null:
+		return false
+	if player is CharacterBody2D and not (player as CharacterBody2D).is_on_floor():
+		return true
+	var standing_y: float = get_player_standing_y()
+	return player.global_position.y <= standing_y - JUMP_CLEAR_HEIGHT
 
 # -- Layout (landscape reference: 1920x1080) -----------------------------------
 
@@ -83,17 +162,17 @@ const CAMERA_TOP_LIMIT: float = 0.0
 # -- Player movement (jump feel) -----------------------------------------------
 
 ## High, readable arc with lots of clearance over curb obstacles.
-const PLAYER_GRAVITY: float = 1500.0
-const PLAYER_JUMP_VELOCITY: float = 980.0
+const PLAYER_GRAVITY: float = 1350.0
+const PLAYER_JUMP_VELOCITY: float = 1050.0
 const PLAYER_MAX_FALL_SPEED: float = 1400.0
 
 # -- Player input grace windows (seconds) ------------------------------------
 
 ## Generous windows so slow/cloud FPS (large deltas) still feel fair.
-const COYOTE_TIME: float = 0.22
-const JUMP_BUFFER: float = 0.20
-const SLIDE_DURATION: float = 0.40
-const SLIDE_INPUT_DRAG_THRESHOLD: float = 72.0
+const COYOTE_TIME: float = 0.26
+const JUMP_BUFFER: float = 0.24
+const SLIDE_DURATION: float = 0.45
+const SLIDE_INPUT_DRAG_THRESHOLD: float = 64.0
 
 # -- Player collision ---------------------------------------------------------
 
@@ -118,12 +197,21 @@ static func get_segment_ground_colors() -> Array[Color]:
 # -- Progression ---------------------------------------------------------------
 
 const SWING_UNLOCK_DISTANCE: float = 500.0
-const DIFFICULTY_DISTANCE_PER_LEVEL: float = 200.0
-const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.08
+## ~3–4s per level at base speed so module mix evolves over a 30–60s run.
+const DIFFICULTY_DISTANCE_PER_LEVEL: float = 1400.0
+const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.10
+
+## Hazard segment stride shrinks with level (3 → 2 → 1).
+const HAZARD_STRIDE_BASE: int = 3
+const HAZARD_STRIDE_MIN: int = 1
+const TALL_OBSTACLE_UNLOCK_LEVEL: int = 2
+const OVERHEAD_OBSTACLE_UNLOCK_LEVEL: int = 4
+const DOUBLE_CURB_UNLOCK_LEVEL: int = 6
+const COIN_SPAWN_START_LEVEL: int = 1
 
 # -- Scoring -------------------------------------------------------------------
 
-## Score is distance scaled; keeps HUD readable without a separate economy.
+## Score is distance scaled; coins add a flat bonus via GameScene.
 const SCORE_PER_DISTANCE: float = 1.0
 
 
