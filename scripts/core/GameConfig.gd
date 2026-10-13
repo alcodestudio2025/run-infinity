@@ -10,11 +10,25 @@ const TARGET_FPS: int = 60
 const VIEWPORT_WIDTH: float = 1920.0
 const VIEWPORT_HEIGHT: float = 1080.0
 
+## When true, GameState / run lifecycle prints appear in Output.
+const DEBUG_LOG: bool = false
+
 # -- World movement ------------------------------------------------------------
 
-const BASE_WORLD_SPEED: float = 280.0
-const MAX_WORLD_SPEED: float = 720.0
-const WORLD_ACCELERATION: float = 48.0
+## Tuned for a ~30–60s run: start at base, ease toward max over distance.
+const BASE_WORLD_SPEED: float = 340.0
+const MAX_WORLD_SPEED: float = 620.0
+## How fast current_speed chases target_speed (px/s²).
+const WORLD_ACCELERATION: float = 180.0
+## Distance at which target speed reaches MAX_WORLD_SPEED.
+const SPEED_RAMP_DISTANCE: float = 9000.0
+
+
+static func get_target_speed_for_distance(distance: float) -> float:
+	var t: float = clampf(distance / SPEED_RAMP_DISTANCE, 0.0, 1.0)
+	## Ease-out so early pace stays readable.
+	t = 1.0 - (1.0 - t) * (1.0 - t)
+	return lerpf(BASE_WORLD_SPEED, MAX_WORLD_SPEED, t)
 
 # -- Segment system (runner engine) --------------------------------------------
 
@@ -22,6 +36,8 @@ const SEGMENT_LENGTH: float = VIEWPORT_WIDTH
 const SEGMENT_GROUND_HEIGHT: float = 40.0
 const SEGMENT_ACTIVE_COUNT: int = 4
 const SEGMENT_RECYCLE_MARGIN: float = 64.0
+## First N segments spawn no obstacles so the player can settle and learn jump.
+const SAFE_START_SEGMENT_COUNT: int = 4
 const MODULE_PLACEHOLDER_MAX_COUNT: int = 2
 const MODULE_PLACEHOLDER_LOCAL_Y: float = -90.0
 
@@ -38,9 +54,10 @@ static func get_module_placeholder_local_position(
 	return Vector2(segment_length * ratio, MODULE_PLACEHOLDER_LOCAL_Y)
 
 
-const OBSTACLE_SIZE: Vector2 = Vector2(80.0, 120.0)
-const OBSTACLE_LOCAL_X_RATIO: float = 0.15
-const OBSTACLE_LOCAL_Y: float = -60.0
+## Low curb-style hazard: easy to clear, still punishes standing into it.
+const OBSTACLE_SIZE: Vector2 = Vector2(70.0, 48.0)
+const OBSTACLE_LOCAL_X_RATIO: float = 0.20
+const OBSTACLE_LOCAL_Y: float = -24.0
 const OBSTACLE_COLOR: Color = Color(0.85, 0.2, 0.2, 1.0)
 
 
@@ -63,12 +80,20 @@ const PLAYER_FEET_OFFSET: float = 32.0
 const CAMERA_WORLD_WIDTH_MULTIPLIER: float = 2.0
 const CAMERA_TOP_LIMIT: float = 0.0
 
+# -- Player movement (jump feel) -----------------------------------------------
+
+## High, readable arc with lots of clearance over curb obstacles.
+const PLAYER_GRAVITY: float = 1500.0
+const PLAYER_JUMP_VELOCITY: float = 980.0
+const PLAYER_MAX_FALL_SPEED: float = 1400.0
+
 # -- Player input grace windows (seconds) ------------------------------------
 
-const COYOTE_TIME: float = 0.12
-const JUMP_BUFFER: float = 0.10
-const SLIDE_DURATION: float = 0.45
-const SLIDE_INPUT_DRAG_THRESHOLD: float = 80.0
+## Generous windows so slow/cloud FPS (large deltas) still feel fair.
+const COYOTE_TIME: float = 0.22
+const JUMP_BUFFER: float = 0.20
+const SLIDE_DURATION: float = 0.40
+const SLIDE_INPUT_DRAG_THRESHOLD: float = 72.0
 
 # -- Player collision ---------------------------------------------------------
 
@@ -93,5 +118,14 @@ static func get_segment_ground_colors() -> Array[Color]:
 # -- Progression ---------------------------------------------------------------
 
 const SWING_UNLOCK_DISTANCE: float = 500.0
-const DIFFICULTY_DISTANCE_PER_LEVEL: float = 150.0
-const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.1
+const DIFFICULTY_DISTANCE_PER_LEVEL: float = 200.0
+const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.08
+
+# -- Scoring -------------------------------------------------------------------
+
+## Score is distance scaled; keeps HUD readable without a separate economy.
+const SCORE_PER_DISTANCE: float = 1.0
+
+
+static func distance_to_score(distance: float) -> int:
+	return int(floor(maxf(distance, 0.0) * SCORE_PER_DISTANCE))

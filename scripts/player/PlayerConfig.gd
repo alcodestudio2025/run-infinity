@@ -4,9 +4,9 @@ extends Resource
 ## Tunable movement values for the player.
 ## Defaults align with global GameConfig where applicable.
 
-@export var gravity: float = 1800.0
-@export var jump_velocity: float = 620.0
-@export var max_fall_speed: float = 1200.0
+@export var gravity: float = GameConfig.PLAYER_GRAVITY
+@export var jump_velocity: float = GameConfig.PLAYER_JUMP_VELOCITY
+@export var max_fall_speed: float = GameConfig.PLAYER_MAX_FALL_SPEED
 @export var coyote_time: float = GameConfig.COYOTE_TIME
 @export var jump_buffer_time: float = GameConfig.JUMP_BUFFER
 @export var slide_duration: float = GameConfig.SLIDE_DURATION

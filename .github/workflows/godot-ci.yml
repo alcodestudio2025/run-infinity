@@ -37,4 +37,23 @@ jobs:
         run: godot --headless --path . --import --quit
 
       - name: Smoke quit-after (main scene boots)
-        run: godot --headless --path . --quit-after 2
+        # Godot 4.7: --quit-after is frame iterations (not seconds).
+        run: godot --headless --path . --fixed-fps 60 --quit-after 120
+
+      - name: M1 core-loop smoke (game over + restart)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_core_loop_smoke.gd 2>&1 | tee /tmp/m1-smoke.log
+          grep -q 'M1 core-loop smoke PASS' /tmp/m1-smoke.log
+
+      - name: M1 jump-clear smoke (auto-jump first obstacle)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_jump_clear_smoke.gd 2>&1 | tee /tmp/m1-jump-smoke.log
+          grep -q 'M1 jump-clear smoke PASS' /tmp/m1-jump-smoke.log
+
+      - name: M1 nojump-death smoke (standing into first obstacle)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_nojump_death_smoke.gd 2>&1 | tee /tmp/m1-nojump-smoke.log
+          grep -q 'M1 nojump-death smoke PASS' /tmp/m1-nojump-smoke.log

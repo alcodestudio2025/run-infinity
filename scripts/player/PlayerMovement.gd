@@ -32,22 +32,50 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _player.is_alive() or not GameStateManager.is_playing():
 		return
-	_update_timers(delta)
+
+	## Clamp huge deltas (llvmpipe / hitch) so coyote + jump buffer stay usable.
+	var step: float = minf(delta, 0.05)
+	_poll_action_input()
+	_update_timers(step)
 	_update_slide()
 	_handle_jump_input()
-	_apply_gravity(delta)
-	_body.velocity.y = minf(_body.velocity.y, _config.max_fall_speed)
+	_apply_gravity(step)
 	_body.move_and_slide()
 	_refresh_coyote_time()
 	_sync_player_state()
 
+
+func _poll_action_input() -> void:
+	## Physics-frame polling is more reliable than event delivery alone under load.
+	if Input.is_action_just_pressed("ui_down"):
+		_start_slide()
+	if (
+		Input.is_action_just_pressed("ui_accept")
+		or Input.is_action_just_pressed("ui_up")
+	):
+		_queue_jump_buffer()
+
 func _unhandled_input(event: InputEvent) -> void:
+	_handle_input_event(event)
+
+
+func _input(event: InputEvent) -> void:
+	## Also listen on _input so jump/slide still work if another node marks the event handled.
+	_handle_input_event(event)
+
+
+func _handle_input_event(event: InputEvent) -> void:
 	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
 		return
-	if event.is_action_pressed("ui_down"):
+
+	if event.is_action_pressed("ui_down") or _is_slide_key(event):
 		_start_slide()
-	if event.is_action_pressed("ui_accept"):
+		return
+
+	if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_up") or _is_jump_key(event):
 		_queue_jump_buffer()
+		return
+
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
@@ -55,6 +83,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		var touch_event := event as InputEventScreenTouch
 		_handle_pointer_input(touch_event.pressed, touch_event.position)
+
+
+func _is_jump_key(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return false
+	return key_event.keycode in [KEY_SPACE, KEY_W, KEY_UP, KEY_Z]
+
+
+func _is_slide_key(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return false
+	return key_event.keycode in [KEY_S, KEY_DOWN, KEY_C]
 
 func _handle_pointer_input(pressed: bool, position: Vector2) -> void:
 	if pressed:
@@ -81,6 +127,10 @@ func _handle_jump_input() -> void:
 		return
 	_perform_jump()
 
+func request_jump() -> void:
+	_queue_jump_buffer()
+
+
 func _queue_jump_buffer() -> void:
 	if not _is_sliding():
 		_jump_buffer_left = _config.jump_buffer_time
@@ -89,11 +139,14 @@ func _can_jump() -> bool:
 	return _body.is_on_floor() or _coyote_time_left > 0.0
 
 func _perform_jump() -> void:
-	_body.velocity.y = -_config.jump_velocity
+	## Prefer GameConfig so runtime tuning always wins over stale Resource defaults.
+	_body.velocity.y = -GameConfig.PLAYER_JUMP_VELOCITY
 	_coyote_time_left = 0.0
 	_jump_buffer_left = 0.0
 	_player.set_state(PlayerState.State.JUMPING)
 	EventBus.player_jumped.emit()
+	if GameConfig.DEBUG_LOG:
+		print_debug("JUMP at y=%0.1f" % _body.global_position.y)
 
 func _start_slide() -> void:
 	if not _can_slide():
@@ -137,7 +190,8 @@ func _apply_gravity(delta: float) -> void:
 	if _body.is_on_floor() and _body.velocity.y > 0.0:
 		_body.velocity.y = 0.0
 		return
-	_body.velocity.y += _config.gravity * delta
+	_body.velocity.y += GameConfig.PLAYER_GRAVITY * delta
+	_body.velocity.y = minf(_body.velocity.y, GameConfig.PLAYER_MAX_FALL_SPEED)
 
 func _update_timers(delta: float) -> void:
 	if _coyote_time_left > 0.0:

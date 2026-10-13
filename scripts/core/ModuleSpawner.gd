@@ -17,10 +17,16 @@ func populate_segment(segment: Segment, segment_index: int) -> void:
 		push_error("ModuleSpawner: segment is missing ModuleRoot.")
 		return
 
-	if segment_index % 2 == 0:
+	## Safe start: no hazards while the player settles on the first slices.
+	if segment_index < GameConfig.SAFE_START_SEGMENT_COUNT:
 		_attach_placeholder(segment, module_root, 0)
-	else:
+		return
+
+	## Sparse hazards for M1 (every 3rd segment) — denser patterns land in M2.
+	if segment_index % 3 == 0:
 		_attach_obstacle(segment, module_root)
+	else:
+		_attach_placeholder(segment, module_root, 0)
 
 
 func _attach_placeholder(

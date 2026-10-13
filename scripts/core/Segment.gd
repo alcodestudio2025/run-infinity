@@ -110,8 +110,11 @@ func _reset_modules(root: Node2D) -> void:
 	if root == null:
 		return
 
+	## Free immediately: recycle can re-acquire the same segment in one frame.
+	## queue_free would leave stale modules as siblings until end-of-frame.
 	for child: Node in root.get_children():
 		if child is SegmentModule:
 			(child as SegmentModule).deactivate()
 			(child as SegmentModule).reset()
-		child.queue_free()
+		root.remove_child(child)
+		child.free()
