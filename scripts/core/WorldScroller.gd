@@ -74,21 +74,28 @@ func _layout_segments() -> void:
 func _recycle_segments() -> void:
 	var left_bound: float = _get_recycle_left_bound()
 	var segments: Array[Segment] = _segment_manager.get_active_segments()
-	var rightmost_edge: float = _get_rightmost_right_edge(segments)
 
-	for segment: Segment in segments.duplicate():
+	for segment: Segment in segments:
 		var segment_length: float = segment.get_length()
 		var segment_right: float = segment.position.x + segment_length * 0.5
 		if segment_right >= left_bound:
 			continue
 
+		## Recompute right edge from remaining actives so Released tiles never
+		## leave a gap or overlap when multiple segments recycle in one frame.
 		_segment_manager.release_segment(segment)
+		var rightmost_edge: float = _get_rightmost_right_edge(
+			_segment_manager.get_active_segments()
+		)
+		if rightmost_edge == -INF:
+			rightmost_edge = left_bound
+
 		var recycled_segment: Segment = _segment_manager.request_segment()
+		var recycled_length: float = recycled_segment.get_length()
 		recycled_segment.position = Vector2(
-			rightmost_edge + segment_length * 0.5,
+			rightmost_edge + recycled_length * 0.5,
 			_get_segment_center_y(),
 		)
-		rightmost_edge = recycled_segment.position.x + segment_length * 0.5
 
 
 func _get_rightmost_right_edge(segments: Array[Segment]) -> float:

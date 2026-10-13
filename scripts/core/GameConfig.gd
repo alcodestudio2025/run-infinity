@@ -60,9 +60,52 @@ const OBSTACLE_LOCAL_X_RATIO: float = 0.20
 const OBSTACLE_LOCAL_Y: float = -24.0
 const OBSTACLE_COLOR: Color = Color(0.85, 0.2, 0.2, 1.0)
 
+## Tall curb: same footing, needs a committed jump.
+const TALL_OBSTACLE_SIZE: Vector2 = Vector2(64.0, 96.0)
+const TALL_OBSTACLE_LOCAL_X_RATIO: float = 0.18
+const TALL_OBSTACLE_LOCAL_Y: float = -48.0
+const TALL_OBSTACLE_COLOR: Color = Color(0.78, 0.28, 0.12, 1.0)
+
+## Overhead bar: standing hits it; slide duck clears by geometry.
+const OVERHEAD_OBSTACLE_SIZE: Vector2 = Vector2(140.0, 52.0)
+const OVERHEAD_OBSTACLE_LOCAL_X_RATIO: float = 0.22
+const OVERHEAD_OBSTACLE_LOCAL_Y: float = -96.0
+const OVERHEAD_OBSTACLE_COLOR: Color = Color(0.55, 0.15, 0.55, 1.0)
+
+## Double curb spacing inside one segment (local x ratios).
+const DOUBLE_CURB_LOCAL_X_RATIOS: Array[float] = [-0.28, 0.28]
+
+## Coin collectible.
+const COIN_SIZE: Vector2 = Vector2(36.0, 36.0)
+const COIN_LOCAL_Y: float = -110.0
+const COIN_COLOR: Color = Color(0.95, 0.78, 0.15, 1.0)
+const COIN_SCORE_VALUE: int = 250
+const COIN_LOCAL_X_RATIOS: Array[float] = [-0.15, 0.0, 0.35]
+
 
 static func get_obstacle_local_position(segment_length: float) -> Vector2:
 	return Vector2(segment_length * OBSTACLE_LOCAL_X_RATIO, OBSTACLE_LOCAL_Y)
+
+
+static func get_tall_obstacle_local_position(segment_length: float) -> Vector2:
+	return Vector2(segment_length * TALL_OBSTACLE_LOCAL_X_RATIO, TALL_OBSTACLE_LOCAL_Y)
+
+
+static func get_overhead_obstacle_local_position(segment_length: float) -> Vector2:
+	return Vector2(segment_length * OVERHEAD_OBSTACLE_LOCAL_X_RATIO, OVERHEAD_OBSTACLE_LOCAL_Y)
+
+
+static func get_coin_local_position(segment_length: float, slot_index: int = 0) -> Vector2:
+	var ratios: Array[float] = COIN_LOCAL_X_RATIOS
+	var ratio: float = ratios[slot_index % ratios.size()]
+	return Vector2(segment_length * ratio, COIN_LOCAL_Y)
+
+
+static func get_double_curb_local_positions(segment_length: float) -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	for ratio: float in DOUBLE_CURB_LOCAL_X_RATIOS:
+		positions.append(Vector2(segment_length * ratio, OBSTACLE_LOCAL_Y))
+	return positions
 
 # -- Layout (landscape reference: 1920x1080) -----------------------------------
 
@@ -118,12 +161,21 @@ static func get_segment_ground_colors() -> Array[Color]:
 # -- Progression ---------------------------------------------------------------
 
 const SWING_UNLOCK_DISTANCE: float = 500.0
-const DIFFICULTY_DISTANCE_PER_LEVEL: float = 200.0
-const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.08
+## ~3–4s per level at base speed so module mix evolves over a 30–60s run.
+const DIFFICULTY_DISTANCE_PER_LEVEL: float = 1400.0
+const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.10
+
+## Hazard segment stride shrinks with level (3 → 2 → 1).
+const HAZARD_STRIDE_BASE: int = 3
+const HAZARD_STRIDE_MIN: int = 1
+const TALL_OBSTACLE_UNLOCK_LEVEL: int = 2
+const OVERHEAD_OBSTACLE_UNLOCK_LEVEL: int = 4
+const DOUBLE_CURB_UNLOCK_LEVEL: int = 6
+const COIN_SPAWN_START_LEVEL: int = 1
 
 # -- Scoring -------------------------------------------------------------------
 
-## Score is distance scaled; keeps HUD readable without a separate economy.
+## Score is distance scaled; coins add a flat bonus via GameScene.
 const SCORE_PER_DISTANCE: float = 1.0
 
 
