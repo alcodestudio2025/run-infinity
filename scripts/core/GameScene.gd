@@ -33,6 +33,7 @@ func _ready() -> void:
 	_setup_camera()
 	_setup_hud()
 	_spawn_player()
+	_log_debug("RUN STARTED")
 
 
 func _physics_process(_delta: float) -> void:
@@ -40,8 +41,11 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var distance: float = _velocity_controller.distance_travelled
+	var score: int = GameConfig.distance_to_score(distance)
 	_hud.update_distance(distance)
-	_hud.update_score(int(distance))
+	_hud.update_score(score)
+	_hud.update_speed(_velocity_controller.current_speed)
+	_hud.show_running()
 
 
 func _exit_tree() -> void:
@@ -55,12 +59,28 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("ui_accept"):
 		restart_run()
+		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
 		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_R:
 			restart_run()
+			get_viewport().set_input_as_handled()
+			return
+
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			restart_run()
+			get_viewport().set_input_as_handled()
+			return
+
+	if event is InputEventScreenTouch:
+		var touch_event := event as InputEventScreenTouch
+		if touch_event.pressed:
+			restart_run()
+			get_viewport().set_input_as_handled()
 
 
 func restart_run() -> void:
@@ -83,7 +103,7 @@ func restart_run() -> void:
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
 	_velocity_controller.start_run()
 	_world_scroller.start()
-	print_debug("RUN RESTARTED")
+	_log_debug("RUN RESTARTED")
 
 
 func _on_player_died() -> void:
@@ -93,7 +113,7 @@ func _on_player_died() -> void:
 	_game_over_handled = true
 
 	var distance: float = _velocity_controller.distance_travelled
-	var final_score: int = int(distance)
+	var final_score: int = GameConfig.distance_to_score(distance)
 
 	_velocity_controller.stop_run()
 	_world_scroller.stop()
@@ -102,7 +122,7 @@ func _on_player_died() -> void:
 	EventBus.game_over.emit(final_score, distance)
 	if _hud != null:
 		_hud.show_game_over(final_score, distance)
-	print_debug("GAME OVER - Score: %d - Distance: %0.1f" % [final_score, distance])
+	_log_debug("GAME OVER - Score: %d - Distance: %0.1f" % [final_score, distance])
 
 
 func _setup_ground() -> void:
@@ -148,3 +168,8 @@ func _get_spawn_position() -> Vector2:
 		viewport_size.x * GameConfig.PLAYER_SCREEN_RATIO,
 		GameConfig.GROUND_Y - GameConfig.PLAYER_FEET_OFFSET,
 	)
+
+
+func _log_debug(message: String) -> void:
+	if GameConfig.DEBUG_LOG:
+		print_debug(message)

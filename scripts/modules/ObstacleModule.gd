@@ -65,6 +65,10 @@ func _on_body_entered(body: Node2D) -> void:
 	if player == null or not player.is_alive():
 		return
 
+	## Airborne clears the curb (wide timing window for M1 jump feel).
+	if not player.is_on_floor():
+		return
+
 	_has_triggered = true
 	EventBus.player_hit_obstacle.emit()
 	player.kill()

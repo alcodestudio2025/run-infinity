@@ -16,6 +16,8 @@ var _is_running: bool = false
 func start_run() -> void:
 	_is_running = true
 	target_speed = GameConfig.BASE_WORLD_SPEED
+	## Snap to base so the first seconds feel like a real run, not a crawl.
+	current_speed = GameConfig.BASE_WORLD_SPEED
 
 
 func stop_run() -> void:

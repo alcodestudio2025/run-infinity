@@ -33,5 +33,8 @@ func _physics_process(delta: float) -> void:
 	if _velocity_controller == null or _difficulty_director == null:
 		return
 
-	_velocity_controller.physics_update(delta)
 	_difficulty_director.update_difficulty(_velocity_controller.distance_travelled)
+	_velocity_controller.set_target_speed(
+		GameConfig.get_target_speed_for_distance(_velocity_controller.distance_travelled)
+	)
+	_velocity_controller.physics_update(delta)
