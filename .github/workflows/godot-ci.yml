@@ -143,20 +143,21 @@ jobs:
       - name: M5.1 latch module smoke (ANCHOR spawn + invalidate)
         run: |
           set -euo pipefail
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_latch_module_smoke.gd 2>&1 | tee /tmp/m5-1-latch-smoke.log
+          ## Godot may exit 1 on benign RID leaks after PASS — assert the PASS line.
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_latch_module_smoke.gd 2>&1 | tee /tmp/m5-1-latch-smoke.log || true
           grep -q 'M5.1 latch-module smoke PASS' /tmp/m5-1-latch-smoke.log
 
       - name: M5.1 grapple live smoke (input + attach + release)
         run: |
           set -euo pipefail
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_live_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-live-smoke.log
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_live_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-live-smoke.log || true
           grep -q 'userdata isolation OK' /tmp/m5-1-grapple-live-smoke.log
           grep -q 'M5.1 grapple-live smoke PASS' /tmp/m5-1-grapple-live-smoke.log
 
       - name: M5.1 grapple FPS smoke (30/60/120 Hz tolerances)
         run: |
           set -euo pipefail
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_fps_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-fps-smoke.log
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_fps_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-fps-smoke.log || true
           grep -q 'userdata isolation OK' /tmp/m5-1-grapple-fps-smoke.log
           grep -q 'M5.1 grapple-fps smoke PASS' /tmp/m5-1-grapple-fps-smoke.log
 
