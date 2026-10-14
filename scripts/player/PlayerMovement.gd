@@ -9,9 +9,7 @@ var _body: CharacterBody2D
 var _config: PlayerConfig
 var _collision_shape: CollisionShape2D
 var _hitbox_shape: RectangleShape2D
-var _sprite: Sprite2D
-var _default_sprite_scale: Vector2 = Vector2.ONE
-var _default_sprite_position: Vector2 = Vector2.ZERO
+var _visual: CharacterVisual
 var _coyote_time_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _slide_time_left: float = 0.0
@@ -25,9 +23,9 @@ func setup(player: Player, config: PlayerConfig) -> void:
 	_body = player
 	_config = config
 	_collision_shape = player.get_node("CollisionShape2D") as CollisionShape2D
-	_sprite = player.get_node("Sprite2D") as Sprite2D
+	_visual = player.get_node_or_null("CharacterVisual") as CharacterVisual
 	_setup_hitbox_shape()
-	_setup_sprite_visual()
+	_setup_visual()
 	_setup_touch_router()
 	_setup_grapple_driver()
 
@@ -366,23 +364,16 @@ func _apply_hitbox(size: Vector2, position: Vector2) -> void:
 	_collision_shape.position = position
 
 
-func _setup_sprite_visual() -> void:
-	if _sprite == null:
-		return
-	_default_sprite_scale = _sprite.scale
-	_default_sprite_position = _sprite.position
+func _setup_visual() -> void:
+	## Visual is independent of hitbox; standing pose is the default.
 	_apply_standing_visual()
 
 
 func _apply_sliding_visual() -> void:
-	if _sprite == null:
-		return
-	_sprite.scale = _config.sliding_sprite_scale
-	_sprite.position = _config.sliding_sprite_position
+	if _visual != null:
+		_visual.set_sliding(true)
 
 
 func _apply_standing_visual() -> void:
-	if _sprite == null:
-		return
-	_sprite.scale = _default_sprite_scale
-	_sprite.position = _default_sprite_position
+	if _visual != null:
+		_visual.set_standing()

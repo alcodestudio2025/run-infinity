@@ -209,6 +209,13 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m5-1-2-e-coins-smoke.log
           grep -q 'M5.1.2-E coins smoke PASS' /tmp/m5-1-2-e-coins-smoke.log
 
+      - name: M6.1 character smoke (select persist + visual + hitbox)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m6_1_character_smoke.gd 2>&1 | tee /tmp/m6-1-character-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m6-1-character-smoke.log
+          grep -q 'M6.1 character smoke PASS' /tmp/m6-1-character-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail

@@ -3,6 +3,8 @@ extends Resource
 
 @export var player_id: String = ""
 @export var display_name: String = "Player"
+## Stable CharacterCatalog id (`kai` | `nova`). Default Kai.
+@export var selected_character_id: String = "kai"
 @export var total_runs: int = 0
 @export var level: int = 1
 @export var xp: int = 0
@@ -25,6 +27,7 @@ func to_dict() -> Dictionary:
 	return {
 		"player_id": player_id,
 		"display_name": display_name,
+		"selected_character_id": selected_character_id,
 		"total_runs": total_runs,
 		"level": level,
 		"xp": xp,
@@ -48,6 +51,7 @@ static func from_dict(dict: Dictionary) -> SaveData:
 	var data := SaveData.new()
 	data.player_id = dict.get("player_id", "")
 	data.display_name = dict.get("display_name", "Player")
+	data.selected_character_id = str(dict.get("selected_character_id", "kai"))
 	data.total_runs = dict.get("total_runs", 0)
 	data.level = dict.get("level", 1)
 	data.xp = dict.get("xp", 0)

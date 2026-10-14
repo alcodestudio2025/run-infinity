@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="1_player"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="2_placeholder"]
+[ext_resource type="PackedScene" path="res://scenes/player/CharacterVisual.tscn" id="2_visual"]
 [ext_resource type="Script" path="res://scripts/player/PlayerMovement.gd" id="3_movement"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
@@ -15,10 +15,7 @@ script = ExtResource("1_player")
 position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_body")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.35, 0.75, 1, 1)
-scale = Vector2(0.35, 0.35)
-texture = ExtResource("2_placeholder")
+[node name="CharacterVisual" parent="." instance=ExtResource("2_visual")]
 
 [node name="PlayerMovement" type="Node" parent="."]
 script = ExtResource("3_movement")
