@@ -6,6 +6,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+## Headless smokes redirect XDG_DATA_HOME under /tmp/ri-smoke-* which breaks
+## Godot's lookup of ~/.local/share/godot/export_templates. Clear that pollution.
+if [[ "${XDG_DATA_HOME:-}" == *ri-smoke* ]]; then
+  unset XDG_DATA_HOME
+fi
+
 GODOT_BIN="${GODOT_BIN:-godot}"
 GODOT_VERSION_EXPECTED="${GODOT_VERSION_EXPECTED:-4.7.2.stable}"
 TEMPLATE_VERSION="${TEMPLATE_VERSION:-4.7.2.stable}"

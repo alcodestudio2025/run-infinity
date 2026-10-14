@@ -68,23 +68,14 @@ fi
 
 # --- optional aapt / aapt2 manifest checks ---
 find_aapt() {
-	local candidate=""
+	## Prefer classic `aapt dump badging` — aapt2 badging parsing is unreliable here.
 	local sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-	if command -v aapt2 >/dev/null 2>&1; then
-		echo "aapt2"
-		return 0
-	fi
 	if command -v aapt >/dev/null 2>&1; then
 		echo "aapt"
 		return 0
 	fi
 	if [[ -n "$sdk" && -d "$sdk/build-tools" ]]; then
-		# Prefer newest build-tools version that has aapt2 or aapt
 		while IFS= read -r dir; do
-			if [[ -x "$dir/aapt2" ]]; then
-				echo "$dir/aapt2"
-				return 0
-			fi
 			if [[ -x "$dir/aapt" ]]; then
 				echo "$dir/aapt"
 				return 0
@@ -97,31 +88,32 @@ find_aapt() {
 dump_badging() {
 	local tool="$1"
 	local apk="$2"
-	case "$(basename "$tool")" in
-	aapt2)
-		# aapt2 dump badging works like aapt on recent build-tools
-		"$tool" dump badging "$apk" 2>/dev/null || "$tool" dump --values badging "$apk"
-		;;
-	*)
-		"$tool" dump badging "$apk"
-		;;
-	esac
+	"$tool" dump badging "$apk"
 }
 
 if AAPT_BIN="$(find_aapt)"; then
 	info "using aapt tool: $AAPT_BIN"
-	BADGING="$(dump_badging "$AAPT_BIN" "$APK_PATH" 2>/tmp/m4-apk-aapt.err)" || {
-		cat /tmp/m4-apk-aapt.err >&2 || true
-		fail "aapt dump badging failed for $APK_PATH"
-	}
+	## Godot APKs may make aapt emit attribute warnings and non-zero exit while still
+	## printing a usable package: line — accept stdout if package: is present.
+	set +e
+	BADGING="$(dump_badging "$AAPT_BIN" "$APK_PATH" 2>/tmp/m4-apk-aapt.err)"
+	AAPT_RC=$?
+	set -e
 	printf '%s\n' "$BADGING" > /tmp/m4-apk-badging.txt
-
 	PKG_LINE="$(printf '%s\n' "$BADGING" | grep -E "^package:" | head -n1 || true)"
-	[[ -n "$PKG_LINE" ]] || fail "no package: line in aapt badging"
+	if [[ -z "$PKG_LINE" ]]; then
+		cat /tmp/m4-apk-aapt.err >&2 || true
+		fail "aapt dump badging failed for $APK_PATH (rc=$AAPT_RC, no package: line)"
+	fi
+	if [[ "$AAPT_RC" -ne 0 ]]; then
+		info "aapt returned $AAPT_RC but package: line present (continuing)"
+	fi
 
-	PKG_NAME="$(printf '%s\n' "$PKG_LINE" | sed -n "s/.*name='\([^']*\)'.*/\1/p")"
-	VERSION_CODE="$(printf '%s\n' "$PKG_LINE" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")"
-	VERSION_NAME="$(printf '%s\n' "$PKG_LINE" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
+	## Anchor on "package: name=" — greedy .*name= also matches
+	## compileSdkVersionCodename='16' and yields a false package of "16".
+	PKG_NAME="$(printf '%s\n' "$PKG_LINE" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+	VERSION_CODE="$(printf '%s\n' "$PKG_LINE" | sed -n "s/.*[[:space:]]versionCode='\([^']*\)'.*/\1/p")"
+	VERSION_NAME="$(printf '%s\n' "$PKG_LINE" | sed -n "s/.*[[:space:]]versionName='\([^']*\)'.*/\1/p")"
 
 	echo "  package=$PKG_NAME versionCode=$VERSION_CODE versionName=$VERSION_NAME"
 
