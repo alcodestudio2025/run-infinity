@@ -127,6 +127,19 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m4-1-slide-smoke.log
           grep -q 'M4.1 slide-collision smoke PASS' /tmp/m4-1-slide-smoke.log
 
+      - name: M5.0 grapple architecture smoke (FSM + latch select)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_0_grapple_arch_smoke.gd 2>&1 | tee /tmp/m5-0-grapple-arch-smoke.log
+          grep -q 'M5.0 grapple-arch smoke: PASS' /tmp/m5-0-grapple-arch-smoke.log
+
+      - name: M5.0 grapple simulator smoke (deterministic attach/swing/release)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_0_grapple_sim_smoke.gd 2>&1 | tee /tmp/m5-0-grapple-sim-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m5-0-grapple-sim-smoke.log
+          grep -q 'M5.0 grapple-sim smoke PASS' /tmp/m5-0-grapple-sim-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail
