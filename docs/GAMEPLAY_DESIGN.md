@@ -42,7 +42,7 @@ Approved for **M5 design**, **not implemented** in M4.1:
 5. Automatic release with forward boost.
 6. Future: chain latches + multipliers (later than first Grapple ship).
 
-See architecture notes in §6 and Agent C review (`internal/m4-1-agent-c-grapple-arch-review.md` in the project agent store).
+See `docs/GRAPPLE_DESIGN.md` (M5.0 architecture package under `scripts/grapple/`) and Agent C review (`internal/m4-1-agent-c-grapple-arch-review.md` in the project agent store).
 
 ## 4. Experimental mechanics
 
