@@ -18,6 +18,9 @@ const DEBUG_LOG: bool = false
 ## Tuned for a ~30–60s run: start readable, ease toward max after first hazards.
 const BASE_WORLD_SPEED: float = 320.0
 const MAX_WORLD_SPEED: float = 580.0
+## Hard ceiling while a Grapple release boost is active (distinct from progression max).
+## Keeps repeated boosts from stacking into uncontrolled scroll speed.
+const MAX_BOOST_WORLD_SPEED: float = 900.0
 ## How fast current_speed chases target_speed (px/s²).
 const WORLD_ACCELERATION: float = 160.0
 ## Keep early curbs below top speed so the first jump is human-readable.
