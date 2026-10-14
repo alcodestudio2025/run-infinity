@@ -58,6 +58,11 @@ func _configure_hit_area() -> void:
 
 
 func _on_body_entered(body: Node2D) -> void:
+	resolve_body_overlap(body)
+
+
+## Public entry for Grapple path queries (teleport poses must not tunnel silently).
+func resolve_body_overlap(body: Node2D) -> void:
 	if not _is_active or _has_triggered:
 		return
 
