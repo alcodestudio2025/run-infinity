@@ -113,6 +113,20 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m3-4-touch-smoke.log
           grep -q 'M3.4 touch smoke PASS' /tmp/m3-4-touch-smoke.log
 
+      - name: M4.1 touch latency smoke (early tap/slide commit)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m4_1_touch_latency_smoke.gd 2>&1 | tee /tmp/m4-1-touch-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m4-1-touch-smoke.log
+          grep -q 'M4.1 touch latency smoke PASS' /tmp/m4-1-touch-smoke.log
+
+      - name: M4.1 slide collision smoke (overhead physics clear)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m4_1_slide_collision_smoke.gd 2>&1 | tee /tmp/m4-1-slide-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m4-1-slide-smoke.log
+          grep -q 'M4.1 slide-collision smoke PASS' /tmp/m4-1-slide-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail
