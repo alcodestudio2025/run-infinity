@@ -104,6 +104,18 @@ const COIN_LANE_JUMP_Y: float = -130.0
 const COIN_LANE_GRAPPLE_Y: float = -210.0
 ## How many coins in a teach sequence on consecutive gap slots.
 const COIN_SEQUENCE_LENGTH: int = 3
+## Compatible coins on hazard/latch slices (keeps rewards when stride→1 kills gap slots).
+## Period/offset are deterministic — no RNG. Does not remove hazards.
+const COIN_COMPAT_PERIOD: int = 3
+const COIN_COMPAT_OFFSET: int = 0
+## Lane indices: 0 ground (slide), 1 jump, 2 grapple.
+const COIN_LANE_GROUND: int = 0
+const COIN_LANE_JUMP: int = 1
+const COIN_LANE_GRAPPLE: int = 2
+## X-slot indices into COIN_LOCAL_X_RATIOS for clearances vs obstacle anchors.
+const COIN_SLOT_LEFT: int = 0 ## -0.32
+const COIN_SLOT_MID: int = 1 ## 0.05
+const COIN_SLOT_RIGHT: int = 2 ## 0.38
 
 ## Grapple latch (non-hazard): cyan diamond + amber ring, above jump-apex zone.
 ## Local Y is relative to segment center (ground_y + ground_height/2).
