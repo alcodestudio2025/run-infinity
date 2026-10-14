@@ -37,40 +37,64 @@ jobs:
       - name: Import project (headless)
         run: godot --headless --path . --import --quit
 
+      - name: Prepare isolated smoke userdata
+        run: |
+          set -euo pipefail
+          # shellcheck source=scripts/ci/smoke_env.sh
+          source scripts/ci/smoke_env.sh
+          export RI_SMOKE_ROOT="/tmp/ri-smoke-${GITHUB_RUN_ID:-ci}-$$"
+          ri_smoke_env_setup
+          # Persist for subsequent steps
+          {
+            echo "RI_SMOKE_ROOT=$RI_SMOKE_ROOT"
+            echo "XDG_DATA_HOME=$XDG_DATA_HOME"
+            echo "RI_SMOKE_USER_DATA_DIR=$RI_SMOKE_USER_DATA_DIR"
+            echo "RI_SMOKE_ISOLATED=1"
+          } >> "$GITHUB_ENV"
+
       - name: Smoke quit-after (main scene boots)
         # Godot 4.7: --quit-after is frame iterations (not seconds).
+        # Isolated: accidental death must not write developer saves.
         run: godot --headless --path . --fixed-fps 60 --quit-after 120
 
       - name: M1 core-loop smoke (game over + restart)
         run: |
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_core_loop_smoke.gd 2>&1 | tee /tmp/m1-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m1-smoke.log
           grep -q 'M1 core-loop smoke PASS' /tmp/m1-smoke.log
 
       - name: M1 jump-clear smoke (auto-jump first obstacle)
         run: |
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_jump_clear_smoke.gd 2>&1 | tee /tmp/m1-jump-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m1-jump-smoke.log
           grep -q 'M1 jump-clear smoke PASS' /tmp/m1-jump-smoke.log
 
       - name: M1 nojump-death smoke (standing into first obstacle)
         run: |
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_nojump_death_smoke.gd 2>&1 | tee /tmp/m1-nojump-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m1-nojump-smoke.log
           grep -q 'M1 nojump-death smoke PASS' /tmp/m1-nojump-smoke.log
 
       - name: M2 modules smoke (variety + difficulty + continuity)
         run: |
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd 2>&1 | tee /tmp/m2-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m2-smoke.log
           grep -q 'M2 modules smoke PASS' /tmp/m2-smoke.log
 
       - name: M3 best-score smoke (persist high_score on game_over)
         run: |
           set -euo pipefail
-          # Isolated user:// — do not touch developer save_data.json
-          export XDG_DATA_HOME="/tmp/ri-m3-best-score-xdg"
-          rm -rf "$XDG_DATA_HOME"
-          mkdir -p "$XDG_DATA_HOME"
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m3_best_score_smoke.gd 2>&1 | tee /tmp/m3-best-score-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m3-best-score-smoke.log
           grep -q 'M3 best-score smoke PASS' /tmp/m3-best-score-smoke.log
+
+      - name: M3 smoke save-safety (positive isolated + negative refuse)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/m3_smoke_save_safety_check.sh scripts/ci/smoke_env.sh
+          scripts/ci/m3_smoke_save_safety_check.sh 2>&1 | tee /tmp/m3-save-safety.log
+          grep -q 'M3 smoke save-safety check PASS' /tmp/m3-save-safety.log

@@ -1,7 +1,11 @@
 extends SceneTree
 
 ## Headless M2 smoke: module variety, difficulty progression, segment continuity.
-## Usage: godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd
+## Requires dedicated smoke userdata (scripts/ci/smoke_env.sh) — SaveManager may write on game_over.
+## Usage: source scripts/ci/smoke_env.sh && ri_smoke_env_setup && \
+##   godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd
+
+const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
 
 const WARMUP_FRAMES: int = 90
 const RUN_FRAMES: int = 60 * 55
@@ -12,6 +16,7 @@ const SURVIVE_PAST_FIRST: float = 7500.0
 const TARGET_DISTANCE: float = 12000.0
 const JUMP_WINDOW_START: float = 6000.0
 const JUMP_WINDOW_END: float = 6500.0
+const LABEL := "M2 modules smoke"
 
 
 func _initialize() -> void:
@@ -19,6 +24,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if not Guard.require_isolated(self, LABEL):
+		return
+
 	var err: Error = change_scene_to_file("res://scenes/Main.tscn")
 	if err != OK:
 		push_error("M2 smoke: failed to load Main.tscn (%s)" % error_string(err))

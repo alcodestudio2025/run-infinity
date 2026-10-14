@@ -1,9 +1,22 @@
 extends SceneTree
+
+## Requires dedicated smoke userdata (scripts/ci/smoke_env.sh) — SaveManager writes on game_over.
+
+const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+
 const MAX_FRAMES := 60 * 50
 const STATE_GAME_OVER := 4
+const LABEL := "M1 nojump-death smoke"
+
+
 func _initialize() -> void:
 	call_deferred("_run")
+
+
 func _run() -> void:
+	if not Guard.require_isolated(self, LABEL):
+		return
+
 	change_scene_to_file("res://scenes/Main.tscn")
 	for _i in range(MAX_FRAMES):
 		await physics_frame

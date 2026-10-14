@@ -1,12 +1,14 @@
 extends SceneTree
 
 ## Headless M3.1 smoke: high_score persistence via EventBus.game_over → SaveManager.
-## Usage (isolated user data recommended):
-##   XDG_DATA_HOME=/tmp/ri-m3-test/xdg godot --headless --path . --fixed-fps 60 \
-##     -s res://scripts/ci/m3_best_score_smoke.gd
+## MUST run under dedicated smoke userdata (see scripts/ci/smoke_env.sh):
+##   source scripts/ci/smoke_env.sh && ri_smoke_env_setup
+##   godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m3_best_score_smoke.gd
 ##
 ## Autoload singletons are resolved by node path (not global identifiers) so this
 ## script compiles when launched with -s.
+
+const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
 
 const WARMUP_FRAMES: int = 90
 const POST_KILL_FRAMES: int = 5
@@ -15,6 +17,7 @@ const POST_RESTART_FRAMES: int = 30
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
 const SAVE_PATH := "user://save_data.json"
+const LABEL := "M3 best-score smoke"
 
 
 func _initialize() -> void:
@@ -22,16 +25,20 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	_isolate_save_file()
+	# Fail-fast BEFORE any delete/reset/userdata write.
+	if not Guard.require_isolated(self, LABEL):
+		return
+
+	_clear_isolated_save_file()
 
 	var save_manager: Node = _save_manager()
 	var event_bus: Node = _event_bus()
 	if save_manager == null or event_bus == null:
-		push_error("M3 best-score smoke: SaveManager or EventBus autoload missing.")
+		push_error("%s: SaveManager or EventBus autoload missing." % LABEL)
 		quit(1)
 		return
 
-	# Ensure clean in-memory + disk state for this process.
+	# Ensure clean in-memory + disk state for this isolated process.
 	save_manager.call("reset_data")
 	if int(save_manager.get("data").get("high_score")) != 0:
 		push_error("M3 best-score smoke: expected high_score 0 after reset.")
@@ -167,11 +174,10 @@ func _run() -> void:
 	quit(0)
 
 
-func _isolate_save_file() -> void:
-	## Prefer running under a dedicated XDG_DATA_HOME / HOME so real user saves are untouched.
-	## Still remove any leftover save in this process user:// for determinism.
+func _clear_isolated_save_file() -> void:
+	## Only called after Guard.require_isolated — never touch real userdata.
 	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
 
 
 func _check_high_score(save_manager: Node, expected: int, context: String) -> bool:
