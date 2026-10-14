@@ -432,6 +432,8 @@ func _run() -> void:
 	)
 
 	# --- Case L4: swipe down → slide, not jump (live; slide is real) ---
+	if live_router.has_method("set_swipe_enabled"):
+		live_router.call("set_swipe_enabled", true)
 	# Slide requires on-floor — wait out the L3 jump before swiping.
 	if not await _wait_until_grounded(player, 180):
 		push_error("%s: L4 player never grounded after tap jump." % LABEL)

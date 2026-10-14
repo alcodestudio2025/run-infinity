@@ -24,6 +24,9 @@ var _pose_locked: bool = false
 var _attach_player_x: float = 0.0
 var _attach_rope_offset_x: float = 0.0
 var _rope_line: Line2D = null
+var _miss_line: Line2D = null
+var _miss_time_left: float = 0.0
+var _miss_dir: Vector2 = Vector2(1.0, -0.55).normalized()
 
 
 func setup(player: Player) -> void:
@@ -57,6 +60,7 @@ func setup(player: Player) -> void:
 		EventBus.game_over.connect(_on_game_over)
 
 	_ensure_rope_line()
+	_ensure_miss_line()
 	_resolve_velocity_controller()
 
 
@@ -118,9 +122,11 @@ func reset() -> void:
 	_pose_locked = false
 	_attach_player_x = 0.0
 	_attach_rope_offset_x = 0.0
+	_miss_time_left = 0.0
 	if _controller != null:
 		_controller.reset()
 	_hide_rope()
+	_hide_miss_cast()
 
 
 ## Test hook: apply a swing pose target with the same path-swept collision as live.
@@ -130,19 +136,24 @@ func debug_move_swing_pose_to(target: Vector2) -> void:
 	_move_along_swing_path(target)
 
 
+func is_miss_cast_active() -> bool:
+	return _miss_time_left > 0.0
+
+
 func _physics_process(delta: float) -> void:
 	if _player == null or _controller == null:
 		return
 
 	## Title / GAME_OVER / death: clear any stale seek and stop.
 	if not _player.is_alive() or not GameStateManager.is_playing():
-		if _controller.is_busy() or _pose_locked:
+		if _controller.is_busy() or _pose_locked or _miss_time_left > 0.0:
 			reset()
 		return
 
 	_resolve_velocity_controller()
 	_sync_host()
 	_controller.process(delta)
+	_update_miss_cast(delta)
 
 	if _pose_locked and _controller.get_phase() == GrappleState.Phase.ATTACHED:
 		if not _is_active_latch_valid():
@@ -202,6 +213,9 @@ func _on_swing_pose_updated(position: Vector2, velocity: Vector2) -> void:
 func _on_seek_failed() -> void:
 	_pose_locked = false
 	_hide_rope()
+	## Empty throw + retract visual only — do not alter velocity / trajectory.
+	_begin_miss_cast()
+	EventBus.player_grapple_missed.emit()
 
 
 func _on_player_died() -> void:
@@ -377,6 +391,51 @@ func _ensure_rope_line() -> void:
 	_rope_line.z_index = 8
 	_rope_line.visible = false
 	_player.add_child(_rope_line)
+
+
+func _ensure_miss_line() -> void:
+	if _miss_line != null or _player == null:
+		return
+	_miss_line = Line2D.new()
+	_miss_line.name = "GrappleMissCastPlaceholder"
+	_miss_line.width = 3.0
+	_miss_line.default_color = Color(0.95, 0.75, 0.35, 0.8)
+	_miss_line.z_index = 9
+	_miss_line.visible = false
+	_player.add_child(_miss_line)
+
+
+func _begin_miss_cast() -> void:
+	_miss_time_left = GameConfig.GRAPPLE_MISS_CAST_SEC
+	_ensure_miss_line()
+	_update_miss_cast(0.0)
+
+
+func _update_miss_cast(delta: float) -> void:
+	if _miss_time_left <= 0.0:
+		return
+	_miss_time_left = maxf(_miss_time_left - delta, 0.0)
+	if _miss_line == null or _player == null:
+		return
+	var duration: float = maxf(GameConfig.GRAPPLE_MISS_CAST_SEC, 0.001)
+	var u: float = 1.0 - (_miss_time_left / duration)
+	## Extend then retract along a fixed forward/up ray (local space).
+	var reach: float = 96.0
+	var tip: float = reach * sin(u * PI)
+	_miss_line.clear_points()
+	_miss_line.add_point(Vector2.ZERO)
+	_miss_line.add_point(_miss_dir * tip)
+	_miss_line.default_color.a = 0.85 * (1.0 - u)
+	_miss_line.visible = _miss_time_left > 0.0
+	if _miss_time_left <= 0.0:
+		_hide_miss_cast()
+
+
+func _hide_miss_cast() -> void:
+	_miss_time_left = 0.0
+	if _miss_line != null:
+		_miss_line.visible = false
+		_miss_line.clear_points()
 
 
 func _update_rope_visual() -> void:

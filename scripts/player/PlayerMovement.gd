@@ -124,6 +124,8 @@ func _setup_touch_router() -> void:
 	_touch_router.slide_requested.connect(_on_touch_slide_requested)
 	_touch_router_enabled = false
 	_touch_router.set_enabled(false)
+	## M5.1.2-A: on-screen buttons own SLIDE; swipe kept dormant for reactivation.
+	_touch_router.set_swipe_enabled(false)
 	_sync_touch_router_enabled()
 
 
@@ -176,18 +178,32 @@ func _on_touch_slide_requested() -> void:
 
 
 ## Shared jump vs air-ability intent. Never both from one gesture.
+## Ground contact → jump. True airborne → Grapple/miss. Coyote only for walk-off.
 func _handle_jump_or_air_intent(immediate_jump: bool = false) -> void:
 	if _is_sliding() or _is_grappling():
 		return
-	if _can_jump():
+	if _body.is_on_floor():
 		if immediate_jump:
 			_perform_jump()
 		else:
 			_queue_jump_buffer()
 		return
+	## Walk-off coyote: still falling from ledge (not mid-jump ascent) → jump.
+	if (
+		_coyote_time_left > 0.0
+		and _body.velocity.y >= 0.0
+		and _player.get_state() != PlayerState.State.JUMPING
+		and _player.get_state() != PlayerState.State.LAUNCHED
+	):
+		if immediate_jump:
+			_perform_jump()
+		else:
+			_queue_jump_buffer()
+		return
+	## Airborne JUMP → Grapple seek (miss cast on seek_failed; trajectory unchanged).
 	if _try_request_air_ability():
 		return
-	## Airborne miss / unarmed: keep jump buffer for landing coyote only.
+	## Airborne but ability busy/unarmed: buffer only for landing.
 	_queue_jump_buffer()
 
 
@@ -219,6 +235,11 @@ func _handle_jump_input() -> void:
 
 func request_jump() -> void:
 	_handle_jump_or_air_intent(false)
+
+
+## On-screen JUMP / immediate touch path — apply jump the same frame when legal.
+func request_jump_immediate() -> void:
+	_handle_jump_or_air_intent(true)
 
 
 func request_slide() -> void:
@@ -296,7 +317,11 @@ func _apply_gravity(delta: float) -> void:
 	if _body.is_on_floor() and _body.velocity.y > 0.0:
 		_body.velocity.y = 0.0
 		return
-	_body.velocity.y += GameConfig.PLAYER_GRAVITY * delta
+	var gravity: float = GameConfig.PLAYER_GRAVITY
+	## Faster descent only; ascent uses base gravity so jump height stays familiar.
+	if _body.velocity.y > 0.0:
+		gravity *= GameConfig.PLAYER_FALL_GRAVITY_MULT
+	_body.velocity.y += gravity * delta
 	_body.velocity.y = minf(_body.velocity.y, GameConfig.PLAYER_MAX_FALL_SPEED)
 
 func _update_timers(delta: float) -> void:

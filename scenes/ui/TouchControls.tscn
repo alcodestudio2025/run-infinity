@@ -1,0 +1,50 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/TouchControls.gd" id="1_touch"]
+
+[node name="TouchControls" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_touch")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SlideButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.35
+anchor_right = 0.42
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 0.0
+offset_right = -8.0
+offset_bottom = -24.0
+focus_mode = 0
+mouse_filter = 0
+flat = true
+text = "SLIDE"
+action_mode = 0
+
+[node name="JumpButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.58
+anchor_top = 0.35
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 0.0
+offset_right = -16.0
+offset_bottom = -24.0
+focus_mode = 0
+mouse_filter = 0
+flat = true
+text = "JUMP"
+action_mode = 0
