@@ -15,6 +15,11 @@ desktop.ini
 *.pem
 *.keystore
 
+# Android debug APK build outputs (never commit binaries)
+build/android/*.apk
+build/android/*.apk.sha256
+build/android/*.aab
+
 # Editor / IDE
 .vscode/
 .idea/
