@@ -174,6 +174,13 @@ jobs:
           scripts/ci/m5_1_1_ci_exit_control.sh 2>&1 | tee /tmp/m5-1-1-ci-exit-control.log
           grep -q 'M5.1.1 CI exit-code control PASS' /tmp/m5-1-1-ci-exit-control.log
 
+      - name: M5.1.2-A controls smoke (buttons + miss cast + fall)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_2_a_controls_smoke.gd 2>&1 | tee /tmp/m5-1-2-a-controls-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m5-1-2-a-controls-smoke.log
+          grep -q 'M5.1.2-A controls smoke PASS' /tmp/m5-1-2-a-controls-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail

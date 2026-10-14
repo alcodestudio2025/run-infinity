@@ -2,7 +2,7 @@
 
 Living document for AL Code Studio. Update when mechanics are confirmed, deferred, or changed.
 
-**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1.1
+**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1.2-A
 
 ---
 
@@ -94,7 +94,8 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | **M5.0** | Grapple architecture + deterministic simulator + docs/smokes; gameplay behavior unchanged; live integration deferred |
 | **M5.1** | Live Grapple prototype: PlayerGrappleDriver, LatchModule teach sequence, rope placeholder, live/FPS smokes |
 | **M5.1.1** | Grapple safety: path-swept collisions, boost cap, latch recycle abort, CI exit hardening |
+| **M5.1.2-A** | On-screen JUMP/SLIDE buttons; swipe dormant; miss cast VFX; faster fall; coyote/air intent fix |
 
 ---
 
-*Do not start M5.2 (chains/multipliers) until ChatGPT review of M5.1.1.*
+*M5.1 cycle continues through B/C/D content/balance/stabilize. No M5.2 until FINAL APK authorization.*

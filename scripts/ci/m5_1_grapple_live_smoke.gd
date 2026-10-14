@@ -270,6 +270,9 @@ func _run() -> void:
 		return
 	if live_router.has_method("set_enabled"):
 		live_router.call("set_enabled", true)
+	## M5.1.2-A disables swipe by default; re-arm for this regression case.
+	if live_router.has_method("set_swipe_enabled"):
+		live_router.call("set_swipe_enabled", true)
 	var vp: Vector2 = Vector2(1280, 720)
 	if live_router is Node and (live_router as Node).get_viewport() != null:
 		vp = (live_router as Node).get_viewport().get_visible_rect().size

@@ -16,5 +16,7 @@ signal score_changed(score: int)
 signal score_multiplier_changed(multiplier: float)
 signal player_attached_to_anchor(anchor_position: Vector2)
 signal player_released_from_anchor(launch_velocity: Vector2, is_perfect: bool)
+## Air JUMP with no valid latch: empty cast VFX only (trajectory unchanged).
+signal player_grapple_missed
 signal swing_combo_updated(count: int, multiplier: float, combo_name: String)
 signal swing_perfect_zone_active

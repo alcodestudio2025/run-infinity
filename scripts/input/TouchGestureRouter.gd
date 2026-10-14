@@ -23,6 +23,8 @@ const EARLY_TAP_DWELL_SEC: float = 0.048
 const DEFAULT_VIEWPORT_SIZE: Vector2 = Vector2(720.0, 1280.0)
 
 var _enabled: bool = false
+## When false, downward swipes classify as none (buttons own SLIDE). Kept for reactivation.
+var _swipe_enabled: bool = true
 ## index -> start position
 var _touch_starts: Dictionary = {}
 ## index -> latest position
@@ -66,6 +68,14 @@ func set_enabled(enabled: bool) -> void:
 	_enabled = enabled
 	if not _enabled:
 		reset()
+
+
+func set_swipe_enabled(enabled: bool) -> void:
+	_swipe_enabled = enabled
+
+
+func is_swipe_enabled() -> bool:
+	return _swipe_enabled
 
 
 func handle_input_event(event: InputEvent) -> bool:
@@ -205,9 +215,12 @@ func _evaluate_early_commit(index: int) -> void:
 	if travel > tap_slop and abs_x >= abs_y:
 		return
 
-	## Vertical-dominant clear downward swipe → early slide commit.
-	if abs_y > abs_x and delta.y >= swipe_threshold:
+	## Vertical-dominant clear downward swipe → early slide commit (if swipe armed).
+	if _swipe_enabled and abs_y > abs_x and delta.y >= swipe_threshold:
 		_commit_gesture(index, "slide")
+		return
+	if not _swipe_enabled and abs_y > abs_x and delta.y >= swipe_threshold:
+		_clear_early_tap_if(index)
 		return
 
 	## Clear upward swipe → cancel early tap; end classifies as none.
@@ -285,9 +298,9 @@ func _classify_gesture(start_pos: Vector2, end_pos: Vector2) -> String:
 		return "none"
 
 	## Vertical-dominant beyond slop.
-	## Clear downward swipe past threshold → slide.
+	## Clear downward swipe past threshold → slide (when swipe armed).
 	if delta.y >= swipe_threshold:
-		return "slide"
+		return "slide" if _swipe_enabled else "none"
 
 	## Clear upward swipe past threshold → none (never jump).
 	if delta.y <= -swipe_threshold:
@@ -301,7 +314,8 @@ func _emit_result(result: String) -> void:
 	if result == "jump":
 		jump_requested.emit()
 	elif result == "slide":
-		slide_requested.emit()
+		if _swipe_enabled:
+			slide_requested.emit()
 
 
 func _is_action_index(index: int) -> bool:

@@ -192,8 +192,12 @@ const CAMERA_TOP_LIMIT: float = 0.0
 
 ## High, readable arc with lots of clearance over curb obstacles.
 const PLAYER_GRAVITY: float = 1350.0
+## Applied only while falling (velocity.y > 0) so ascent stays similar.
+const PLAYER_FALL_GRAVITY_MULT: float = 1.55
 const PLAYER_JUMP_VELOCITY: float = 1050.0
-const PLAYER_MAX_FALL_SPEED: float = 1400.0
+const PLAYER_MAX_FALL_SPEED: float = 1600.0
+## Empty Grapple miss cast visual duration (seconds); physics unchanged.
+const GRAPPLE_MISS_CAST_SEC: float = 0.22
 
 # -- Player input grace windows (seconds) ------------------------------------
 

@@ -7,6 +7,7 @@ extends Node2D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player/Player.tscn")
 const HUD_SCENE: PackedScene = preload("res://scenes/ui/HUD.tscn")
+const TOUCH_CONTROLS_SCENE: PackedScene = preload("res://scenes/ui/TouchControls.tscn")
 
 @onready var _velocity_controller: WorldVelocityController = $WorldVelocityController
 @onready var _difficulty_director: DifficultyDirector = $DifficultyDirector
@@ -22,6 +23,7 @@ const HUD_SCENE: PackedScene = preload("res://scenes/ui/HUD.tscn")
 
 var _player: Player
 var _hud: HUD
+var _touch_controls: CanvasLayer
 var _game_over_handled: bool = false
 var _bonus_score: int = 0
 var _run_begun: bool = false
@@ -30,12 +32,14 @@ var _run_begun: bool = false
 func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.player_collected_coin.connect(_on_player_collected_coin)
+	EventBus.game_over.connect(_on_game_over_ui)
 	_run_loop.setup(_velocity_controller, _difficulty_director)
 	_run_loop.stop()
 	_setup_ground()
 	_setup_segment_pipeline()
 	_setup_camera()
 	_setup_hud()
+	_setup_touch_controls()
 	_spawn_player()
 	## Prepared for MAIN_MENU — scrolling / scoring start in begin_run().
 
@@ -50,6 +54,7 @@ func begin_run() -> void:
 	_world_scroller.start()
 	if _hud != null:
 		_hud.visible = true
+	_set_touch_controls_visible(true)
 	_log_debug("RUN STARTED")
 
 
@@ -75,6 +80,8 @@ func _exit_tree() -> void:
 		EventBus.player_died.disconnect(_on_player_died)
 	if EventBus.player_collected_coin.is_connected(_on_player_collected_coin):
 		EventBus.player_collected_coin.disconnect(_on_player_collected_coin)
+	if EventBus.game_over.is_connected(_on_game_over_ui):
+		EventBus.game_over.disconnect(_on_game_over_ui)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -125,6 +132,7 @@ func restart_run() -> void:
 	if _hud != null:
 		_hud.visible = true
 		_hud.reset()
+	_set_touch_controls_visible(true)
 
 	_run_begun = true
 	_run_loop.start()
@@ -132,6 +140,10 @@ func restart_run() -> void:
 	_velocity_controller.start_run()
 	_world_scroller.start()
 	_log_debug("RUN RESTARTED")
+
+
+func _on_game_over_ui(_final_score: int, _distance: float) -> void:
+	_set_touch_controls_visible(false)
 
 
 func _on_player_died() -> void:
@@ -193,6 +205,42 @@ func _setup_hud() -> void:
 	_hud.reset()
 	## Stay under title until begin_run(); TitleScreen layer is ≥ 20.
 	_hud.visible = false
+
+
+func _setup_touch_controls() -> void:
+	if _touch_controls != null:
+		return
+	_touch_controls = TOUCH_CONTROLS_SCENE.instantiate() as CanvasLayer
+	## Own CanvasLayer (layer 12) so buttons sit above HUD and below Title.
+	add_child(_touch_controls)
+	if _touch_controls.has_signal("jump_pressed"):
+		_touch_controls.connect("jump_pressed", _on_touch_jump_pressed)
+	if _touch_controls.has_signal("slide_pressed"):
+		_touch_controls.connect("slide_pressed", _on_touch_slide_pressed)
+	_set_touch_controls_visible(false)
+
+
+func _set_touch_controls_visible(show: bool) -> void:
+	if _touch_controls != null and _touch_controls.has_method("set_controls_visible"):
+		_touch_controls.call("set_controls_visible", show)
+
+
+func _on_touch_jump_pressed() -> void:
+	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
+		return
+	var movement: PlayerMovement = _player.get_node_or_null("PlayerMovement") as PlayerMovement
+	if movement != null and movement.has_method("request_jump_immediate"):
+		movement.call("request_jump_immediate")
+	elif movement != null:
+		movement.request_jump()
+
+
+func _on_touch_slide_pressed() -> void:
+	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
+		return
+	var movement: PlayerMovement = _player.get_node_or_null("PlayerMovement") as PlayerMovement
+	if movement != null:
+		movement.request_slide()
 
 
 func _spawn_player() -> void:
