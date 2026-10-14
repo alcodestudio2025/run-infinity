@@ -15,23 +15,31 @@ const DEBUG_LOG: bool = false
 
 # -- World movement ------------------------------------------------------------
 
-## Tuned for a ~30–60s run: start readable, ease toward max after first hazards.
-const BASE_WORLD_SPEED: float = 320.0
-const MAX_WORLD_SPEED: float = 580.0
+## Tuned for a ~30–60s run: accessible start, clearly rising pace, stable max.
+const BASE_WORLD_SPEED: float = 340.0
+const MAX_WORLD_SPEED: float = 620.0
 ## Hard ceiling while a Grapple release boost is active (distinct from progression max).
 ## Keeps repeated boosts from stacking into uncontrolled scroll speed.
 const MAX_BOOST_WORLD_SPEED: float = 900.0
-## How fast current_speed chases target_speed (px/s²).
-const WORLD_ACCELERATION: float = 160.0
-## Keep early curbs below top speed so the first jump is human-readable.
-const SPEED_RAMP_DISTANCE: float = 14000.0
+## How fast current_speed chases target_speed (px/s²). Higher = more perceptible ramp.
+const WORLD_ACCELERATION: float = 220.0
+## Distance to reach MAX_WORLD_SPEED along the ease curve (shorter = earlier peak).
+const SPEED_RAMP_DISTANCE: float = 9000.0
+## Ease exponent for speed curve (>1 = slower early rise, sharper late).
+const SPEED_RAMP_EASE_POWER: float = 1.35
 
 
 static func get_target_speed_for_distance(distance: float) -> float:
 	var t: float = clampf(distance / SPEED_RAMP_DISTANCE, 0.0, 1.0)
-	## Ease-out so early pace stays readable.
-	t = 1.0 - (1.0 - t) * (1.0 - t)
+	## Configurable ease-out: early pace readable, mid-run acceleration feels real.
+	var p: float = maxf(SPEED_RAMP_EASE_POWER, 1.0)
+	t = 1.0 - pow(1.0 - t, p)
 	return lerpf(BASE_WORLD_SPEED, MAX_WORLD_SPEED, t)
+
+
+## Minimum reaction window (seconds) at max progression speed for one segment gap.
+static func min_reaction_window_sec() -> float:
+	return SEGMENT_LENGTH / maxf(MAX_WORLD_SPEED, 1.0)
 
 # -- Segment system (runner engine) --------------------------------------------
 
@@ -87,7 +95,8 @@ const DOUBLE_CURB_LOCAL_X_RATIOS: Array[float] = [-0.28, 0.28]
 const COIN_SIZE: Vector2 = Vector2(36.0, 36.0)
 const COIN_LOCAL_Y: float = -130.0
 const COIN_COLOR: Color = Color(0.95, 0.78, 0.15, 1.0)
-const COIN_SCORE_VALUE: int = 250
+## Flat bonus; sized so a teach sequence (~6–10 coins) is meaningful vs distance score.
+const COIN_SCORE_VALUE: int = 300
 const COIN_LOCAL_X_RATIOS: Array[float] = [-0.32, 0.05, 0.38]
 ## Lane Y relative to segment center (reachable: stand / jump / swing).
 const COIN_LANE_GROUND_Y: float = -56.0
@@ -253,9 +262,9 @@ static func get_segment_ground_colors() -> Array[Color]:
 # -- Progression ---------------------------------------------------------------
 
 const SWING_UNLOCK_DISTANCE: float = 500.0
-## ~3–4s per level at base speed so module mix evolves over a 30–60s run.
-const DIFFICULTY_DISTANCE_PER_LEVEL: float = 1400.0
-const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.10
+## ~3s per level at mid speed so module mix evolves over a 30–60s run.
+const DIFFICULTY_DISTANCE_PER_LEVEL: float = 1200.0
+const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.12
 
 ## Hazard segment stride shrinks with level (3 → 2 → 1).
 const HAZARD_STRIDE_BASE: int = 3
