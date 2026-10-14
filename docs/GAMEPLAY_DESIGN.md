@@ -2,7 +2,7 @@
 
 Living document for AL Code Studio. Update when mechanics are confirmed, deferred, or changed.
 
-**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1.2-A
+**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1.2-D
 
 ---
 
@@ -10,12 +10,15 @@ Living document for AL Code Studio. Update when mechanics are confirmed, deferre
 
 - Endless auto-run to the right; player stays near a fixed screen X ratio.
 - **Title / MAIN_MENU** with PLAY; run starts only from the menu (`start_game` guarded).
-- **Jump** (tap / keyboard) with coyote time and jump buffer.
-- **Slide** (swipe down / keys) with temporary shorter hitbox and squash visual.
-- Obstacles: low curb, tall, overhead; coins; modular segment spawning with difficulty scaling.
+- **On-screen JUMP (right) / SLIDE (left)** primary touch; swipe dormant (re-armable).
+- **Jump** (button / keyboard) with coyote time and jump buffer; faster fall (×1.55).
+- **Slide** (button / keys) with temporary shorter hitbox and squash visual.
+- **Grapple** (air JUMP near latch): attach → short swing → auto-release; miss cast VFX otherwise.
+- Obstacles: low curb, tall, overhead; multi-lane coins; denser latches; modular spawn + difficulty.
+- Progressive speed ease (340→620 over 9k distance); coin bonus 300.
 - **Game Over** on obstacle hit; restart continues a new run.
 - **Best score** persisted via `SaveManager` / `user://save_data.json`.
-- Touch via `TouchGestureRouter` (primary finger / mouse); UI Controls consume PLAY.
+- Touch via buttons + `TouchGestureRouter` (swipe off); UI Controls consume PLAY.
 
 ## 2. Mechanics confirmed
 
@@ -31,19 +34,20 @@ Living document for AL Code Studio. Update when mechanics are confirmed, deferre
 
 ## 3. Mechanics in prototype / approved future
 
-### Grapple (M5.1 playable prototype)
+### Grapple (M5.1 → M5.1.2 playable prototype)
 
 **Live in game (prototype):**
 
-1. First tap on ground → jump.
-2. Second tap while airborne → Grapple request (not a second jump).
+1. Ground JUMP button → jump.
+2. Airborne JUMP → Grapple request (not a second jump).
 3. Valid latch ahead+above (`LatchModule` / `Tags.ANCHOR`) → attach + rope visual.
-4. Short auto swing → auto-release → upward velocity + world speed burst.
-5. Miss → jump continues. Death/restart clears Grapple.
+4. Short auto swing → auto-release → upward velocity + world speed burst (capped).
+5. No latch → miss cast VFX; jump arc unchanged. Death/restart clears Grapple.
 
-**Still future:** latch chains, multipliers, final art. Spec: [`docs/GRAPPLE_DESIGN.md`](GRAPPLE_DESIGN.md).
+**Still future:** latch chains, multipliers, final art. Spec: [`docs/GRAPPLE_DESIGN.md`](GRAPPLE_DESIGN.md).  
+Balance sheet: [`docs/BALANCE_M5_1.md`](BALANCE_M5_1.md). Miss diagnosis: [`docs/GRAPPLE_MISS_DIAGNOSIS_M5_1_1.md`](GRAPPLE_MISS_DIAGNOSIS_M5_1_1.md).
 
-**M4.1 note:** second physical playtest for touch latency still pending — not device-validated here.
+**Device note:** human Android playtest for buttons/Grapple feel awaits M5.1 FINAL APK authorization.
 
 ## 4. Experimental mechanics
 
@@ -67,10 +71,14 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | Sliding hitbox | 64×38 @ (0,13) | Clears overhead |
 | Touch swipe / tap slop | 6% / 2.5% of viewport height (min 48 / 24 px) | Classification |
 | `EARLY_TAP_DWELL_SEC` | 0.048 s | M4.1 early jump commit |
+| `PLAYER_FALL_GRAVITY_MULT` | 1.55 | Faster descent only |
+| `BASE_WORLD_SPEED` → `MAX` | 340 → 620 | Ease ramp 9000 px, power 1.35 |
+| `WORLD_ACCELERATION` | 220 | Perceptible chase |
+| `COIN_SCORE_VALUE` | 300 | Teach sequence meaningful vs distance |
 | Grapple search range | 480 px (`GrappleConfig`) | Live LatchSelector |
 | Swing duration | 0.45 s | Auto-release window |
-| Latch early segments | 4, 8, 11 | Teach sequence |
-| `MAX_BOOST_WORLD_SPEED` | 900 | Grapple release scroll ceiling (vs max 580) |
+| Latch early segments | 4, 5, 8, 10, 11, 14 | Denser teach (M5.1.2-B) |
+| `MAX_BOOST_WORLD_SPEED` | 900 | Grapple release scroll ceiling (vs max 620) |
 
 ## 6. Architectural decisions
 
@@ -78,7 +86,9 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 2. **M4.1 jump latency:** Early tap dwell (~48ms); early slide on swipe threshold; immediate jump apply when legal.
 3. **M5.1 Grapple live:** `PlayerGrappleDriver` hosts controller+sim; forward release = world speed boost; live latch globals while scrolling; search params from `GrappleConfig`.
 4. **M5.1.1 safety:** path-swept obstacle queries during swing; boost hard-cap; latch recycle abort; CI exit codes not masked.
-5. **Saves:** smokes use isolated XDG userdata; never write developer saves from CI.
+5. **M5.1.2 controls:** on-screen JUMP/SLIDE; swipe off via `set_swipe_enabled(false)`; miss cast on empty air JUMP.
+6. **M5.1.2 content/balance:** denser exclusive-slot spawn; configurable ease speed curve; see `BALANCE_M5_1.md`.
+7. **Saves:** smokes use isolated XDG userdata; never write developer saves from CI.
 
 ## 7. Gameplay change log
 
@@ -95,7 +105,10 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | **M5.1** | Live Grapple prototype: PlayerGrappleDriver, LatchModule teach sequence, rope placeholder, live/FPS smokes |
 | **M5.1.1** | Grapple safety: path-swept collisions, boost cap, latch recycle abort, CI exit hardening |
 | **M5.1.2-A** | On-screen JUMP/SLIDE buttons; swipe dormant; miss cast VFX; faster fall; coyote/air intent fix |
+| **M5.1.2-B** | Denser hazards/latches; multi-lane coins; deterministic content smoke |
+| **M5.1.2-C** | Perceptible speed ramp; difficulty tick; coin 300; balance sheet + smoke |
+| **M5.1.2-D** | Stabilize: landscape layouts, GO/restart, full CI suite; no APK until FINAL auth |
 
 ---
 
-*M5.1 cycle continues through B/C/D content/balance/stabilize. No M5.2 until FINAL APK authorization.*
+*M5.1 cycle complete pending FINAL APK authorization. No M5.2 until then.*
