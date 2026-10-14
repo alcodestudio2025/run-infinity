@@ -7,6 +7,7 @@ on:
       - "cursor/m4-1-mobile-input-f957"
       - "cursor/m5-1-grapple-playable"
       - "cursor/m5-1-1-grapple-safety"
+      - "cursor/m5-1-final-apk-f957"
   pull_request:
     ## Stacked APK PRs: M4→M3.4, M4.1→M4, M5.1→M5.0, M5.1.1→M5.1 tip.
     branches:
