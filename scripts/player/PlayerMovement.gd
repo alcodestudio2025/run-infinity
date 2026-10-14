@@ -125,9 +125,16 @@ func _sync_touch_router_enabled() -> void:
 
 
 func _on_touch_jump_requested() -> void:
+	## Apply immediately when legal so touch jump is not deferred to the next
+	## physics frame (release→buffer→_physics_process was a perceptible lag).
 	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
 		return
-	_queue_jump_buffer()
+	if _is_sliding():
+		return
+	if _can_jump():
+		_perform_jump()
+	else:
+		_queue_jump_buffer()
 
 
 func _on_touch_slide_requested() -> void:

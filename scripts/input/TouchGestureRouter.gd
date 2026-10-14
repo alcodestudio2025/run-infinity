@@ -2,6 +2,12 @@ class_name TouchGestureRouter
 extends Node
 
 ## Classifies pointer gestures into jump/slide intents. No physics.
+##
+## M4.1 latency path:
+## - Early slide: emit once when drag crosses downward swipe threshold.
+## - Early tap: emit once after EARLY_TAP_DWELL_SEC while travel ≤ tap slop.
+## - Release path still classifies if nothing committed yet (rapid taps).
+## - Holding still past dwell then swiping is an accepted edge case (jump already fired).
 
 signal jump_requested
 signal slide_requested
@@ -12,6 +18,8 @@ const SWIPE_RATIO: float = 0.06
 const SWIPE_FALLBACK_PX: float = 48.0
 const TAP_SLOP_RATIO: float = 0.025
 const TAP_SLOP_FALLBACK_PX: float = 24.0
+## Dwell before committing a still/low-travel press as jump (process-delta seconds).
+const EARLY_TAP_DWELL_SEC: float = 0.048
 const DEFAULT_VIEWPORT_SIZE: Vector2 = Vector2(720.0, 1280.0)
 
 var _enabled: bool = false
@@ -19,13 +27,36 @@ var _enabled: bool = false
 var _touch_starts: Dictionary = {}
 ## index -> latest position
 var _touch_positions: Dictionary = {}
+## index -> committed result ("jump"|"slide") after a single emit for that gesture
+var _gesture_committed: Dictionary = {}
 ## True after a real ScreenTouch begins until all touches end (blocks emulated mouse).
 var _touchscreen_gesture_active: bool = false
+## Accumulated process time for early-tap candidate (primary/mouse only).
+var _early_tap_elapsed: float = 0.0
+var _early_tap_index: int = -999
+var _early_tap_active: bool = false
+
+
+func _ready() -> void:
+	set_process(false)
+
+
+func _process(delta: float) -> void:
+	if not _early_tap_active:
+		set_process(false)
+		return
+	if not _enabled:
+		_clear_early_tap()
+		return
+	_early_tap_elapsed += delta
+	_try_early_tap(_early_tap_index)
 
 
 func reset() -> void:
 	_touch_starts.clear()
 	_touch_positions.clear()
+	_gesture_committed.clear()
+	_clear_early_tap()
 	_touchscreen_gesture_active = false
 
 
@@ -88,12 +119,20 @@ func handle_input_event(event: InputEvent) -> bool:
 func begin_touch(index: int, position: Vector2) -> void:
 	_touch_starts[index] = position
 	_touch_positions[index] = position
+	_gesture_committed.erase(index)
+	if _is_action_index(index):
+		_arm_early_tap(index)
 
 
 func update_touch(index: int, position: Vector2) -> void:
 	if not _touch_starts.has(index):
 		return
 	_touch_positions[index] = position
+	if not _is_action_index(index):
+		return
+	if _gesture_committed.has(index):
+		return
+	_evaluate_early_commit(index)
 
 
 func end_touch(index: int, position: Vector2) -> String:
@@ -107,8 +146,18 @@ func end_touch(index: int, position: Vector2) -> String:
 
 	## Only the primary finger emits actions (mouse uses reserved index).
 	if not _is_action_index(index):
+		_clear_early_tap_if(index)
+		_gesture_committed.erase(index)
 		return "none"
 
+	if _gesture_committed.has(index):
+		var committed: String = str(_gesture_committed[index])
+		_gesture_committed.erase(index)
+		_clear_early_tap_if(index)
+		## Already emitted once during drag/dwell — no double emit.
+		return committed
+
+	_clear_early_tap_if(index)
 	var result: String = _classify_gesture(start_pos, position)
 	if _enabled:
 		_emit_result(result)
@@ -118,6 +167,8 @@ func end_touch(index: int, position: Vector2) -> String:
 func cancel_touch(index: int) -> void:
 	_touch_starts.erase(index)
 	_touch_positions.erase(index)
+	_gesture_committed.erase(index)
+	_clear_early_tap_if(index)
 	if index >= 0 and not _has_any_finger_touch():
 		_touchscreen_gesture_active = false
 
@@ -130,6 +181,90 @@ func get_swipe_threshold_px(viewport_size: Vector2) -> float:
 func get_tap_slop_px(viewport_size: Vector2) -> float:
 	var height: float = maxf(viewport_size.y, 1.0)
 	return maxf(TAP_SLOP_FALLBACK_PX, height * TAP_SLOP_RATIO)
+
+
+func _evaluate_early_commit(index: int) -> void:
+	if not _touch_starts.has(index) or _gesture_committed.has(index):
+		return
+
+	var start_pos: Vector2 = _touch_starts[index]
+	var pos: Vector2 = _touch_positions[index]
+	var delta: Vector2 = pos - start_pos
+	var viewport_size: Vector2 = _viewport_size()
+	var swipe_threshold: float = get_swipe_threshold_px(viewport_size)
+	var tap_slop: float = get_tap_slop_px(viewport_size)
+	var abs_x: float = absf(delta.x)
+	var abs_y: float = absf(delta.y)
+	var travel: float = delta.length()
+
+	## Movement past slop cancels early-tap candidate (may still become slide/none).
+	if travel > tap_slop:
+		_clear_early_tap_if(index)
+
+	## Horizontal-dominant past slop → never early-commit; end will return none.
+	if travel > tap_slop and abs_x >= abs_y:
+		return
+
+	## Vertical-dominant clear downward swipe → early slide commit.
+	if abs_y > abs_x and delta.y >= swipe_threshold:
+		_commit_gesture(index, "slide")
+		return
+
+	## Clear upward swipe → cancel early tap; end classifies as none.
+	if abs_y > abs_x and delta.y <= -swipe_threshold:
+		_clear_early_tap_if(index)
+		return
+
+	## Still within slop: may early-tap once dwell elapses.
+	_try_early_tap(index)
+
+
+func _try_early_tap(index: int) -> void:
+	if not _early_tap_active or index != _early_tap_index:
+		return
+	if not _enabled or _gesture_committed.has(index):
+		_clear_early_tap()
+		return
+	if not _touch_starts.has(index):
+		_clear_early_tap()
+		return
+
+	var travel: float = (_touch_positions[index] - _touch_starts[index]).length()
+	var tap_slop: float = get_tap_slop_px(_viewport_size())
+	if travel > tap_slop:
+		_clear_early_tap()
+		return
+
+	if _early_tap_elapsed >= EARLY_TAP_DWELL_SEC:
+		_commit_gesture(index, "jump")
+
+
+func _commit_gesture(index: int, result: String) -> void:
+	if _gesture_committed.has(index):
+		return
+	_gesture_committed[index] = result
+	_clear_early_tap_if(index)
+	if _enabled:
+		_emit_result(result)
+
+
+func _arm_early_tap(index: int) -> void:
+	_early_tap_index = index
+	_early_tap_elapsed = 0.0
+	_early_tap_active = true
+	set_process(true)
+
+
+func _clear_early_tap() -> void:
+	_early_tap_active = false
+	_early_tap_elapsed = 0.0
+	_early_tap_index = -999
+	set_process(false)
+
+
+func _clear_early_tap_if(index: int) -> void:
+	if index == _early_tap_index:
+		_clear_early_tap()
 
 
 func _classify_gesture(start_pos: Vector2, end_pos: Vector2) -> String:
