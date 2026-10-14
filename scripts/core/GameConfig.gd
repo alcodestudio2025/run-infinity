@@ -87,6 +87,24 @@ const COIN_COLOR: Color = Color(0.95, 0.78, 0.15, 1.0)
 const COIN_SCORE_VALUE: int = 250
 const COIN_LOCAL_X_RATIOS: Array[float] = [-0.32, 0.05, 0.38]
 
+## Grapple latch (non-hazard): cyan diamond + amber ring, above jump-apex zone.
+## Local Y is relative to segment center (ground_y + ground_height/2).
+## -220 ≈ 220px above ground center (within 180–280 teachable band).
+const LATCH_SIZE: Vector2 = Vector2(40.0, 40.0)
+const LATCH_LOCAL_X_RATIO: float = 0.0
+const LATCH_LOCAL_Y: float = -220.0
+const LATCH_COLOR: Color = Color(0.12, 0.88, 0.92, 1.0)
+const LATCH_RING_COLOR: Color = Color(1.0, 0.72, 0.18, 1.0)
+const LATCH_POINT_RADIUS: float = 14.0
+## Early controlled sequence (non-hazard at base stride 3): after SAFE_START,
+## first latch on 4 so it sits ~1 segment past the first curb teach beat.
+## Indices 4,8,11 never land on %stride==0 at base stride; smokes rely on this.
+const LATCH_SEGMENT_INDICES: Array[int] = [4, 8, 11]
+## After the early list, keep spawning on stride+LATCH_GAP_OFFSET gaps.
+const LATCH_GAP_OFFSET: int = 2
+## When true, early LATCH_SEGMENT_INDICES always spawn (ignore unlock gate).
+const FORCE_LATCH_SEQUENCE: bool = true
+
 
 static func get_obstacle_local_position(segment_length: float) -> Vector2:
 	return Vector2(segment_length * OBSTACLE_LOCAL_X_RATIO, OBSTACLE_LOCAL_Y)
@@ -106,11 +124,19 @@ static func get_coin_local_position(segment_length: float, slot_index: int = 0) 
 	return Vector2(segment_length * ratio, COIN_LOCAL_Y)
 
 
+static func get_latch_local_position(segment_length: float) -> Vector2:
+	return Vector2(segment_length * LATCH_LOCAL_X_RATIO, LATCH_LOCAL_Y)
+
+
 static func get_double_curb_local_positions(segment_length: float) -> Array[Vector2]:
 	var positions: Array[Vector2] = []
 	for ratio: float in DOUBLE_CURB_LOCAL_X_RATIOS:
 		positions.append(Vector2(segment_length * ratio, OBSTACLE_LOCAL_Y))
 	return positions
+
+
+static func is_early_latch_segment(segment_index: int) -> bool:
+	return segment_index in LATCH_SEGMENT_INDICES
 
 
 ## First hazard segment index at base stride (used by smokes / docs).
@@ -208,6 +234,8 @@ const TALL_OBSTACLE_UNLOCK_LEVEL: int = 2
 const OVERHEAD_OBSTACLE_UNLOCK_LEVEL: int = 4
 const DOUBLE_CURB_UNLOCK_LEVEL: int = 6
 const COIN_SPAWN_START_LEVEL: int = 1
+## Latches teach Grapple early; level 0 so the controlled sequence is reachable.
+const LATCH_UNLOCK_LEVEL: int = 0
 
 # -- Scoring -------------------------------------------------------------------
 

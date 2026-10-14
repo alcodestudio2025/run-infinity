@@ -55,5 +55,9 @@ func can_spawn_coin() -> bool:
 	return current_level >= GameConfig.COIN_SPAWN_START_LEVEL
 
 
+func can_spawn_latch() -> bool:
+	return current_level >= GameConfig.LATCH_UNLOCK_LEVEL
+
+
 func _calculate_difficulty_factor(level: int) -> float:
 	return 1.0 + float(level) * GameConfig.DIFFICULTY_FACTOR_PER_LEVEL

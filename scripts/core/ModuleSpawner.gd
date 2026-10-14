@@ -1,8 +1,9 @@
 class_name ModuleSpawner
 extends Node
 
-## Attaches obstacle / collectible modules to segments.
+## Attaches obstacle / collectible / latch modules to segments.
 ## Pattern mix and density come from DifficultyDirector; no chunk prefabs.
+## Latches use a controlled early sequence (not RNG) so Grapple is learnable.
 
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/modules/ObstacleModule.tscn")
 const TALL_OBSTACLE_SCENE: PackedScene = preload("res://scenes/modules/TallObstacleModule.tscn")
@@ -10,6 +11,7 @@ const OVERHEAD_OBSTACLE_SCENE: PackedScene = preload(
 	"res://scenes/modules/OverheadObstacleModule.tscn"
 )
 const COIN_SCENE: PackedScene = preload("res://scenes/modules/CoinModule.tscn")
+const LATCH_SCENE: PackedScene = preload("res://scenes/modules/LatchModule.tscn")
 
 enum HazardPattern {
 	LOW_CURB,
@@ -19,10 +21,22 @@ enum HazardPattern {
 }
 
 var _difficulty: DifficultyDirector
+## One-shot smoke helper: next populate_segment attaches a latch (then clears).
+var _force_latch_on_next: bool = false
 
 
 func setup(difficulty_director: DifficultyDirector) -> void:
 	_difficulty = difficulty_director
+
+
+## Smoke / debug: force a latch on the next populate_segment call.
+func debug_force_latch_on_next() -> void:
+	_force_latch_on_next = true
+
+
+## Documented early latch indices (mirrors GameConfig.LATCH_SEGMENT_INDICES).
+func get_latch_spawn_indices() -> Array[int]:
+	return GameConfig.LATCH_SEGMENT_INDICES.duplicate()
 
 
 func populate_segment(segment: Segment, segment_index: int) -> void:
@@ -35,10 +49,22 @@ func populate_segment(segment: Segment, segment_index: int) -> void:
 		return
 
 	## Safe start: no hazards while the player settles on the first slices.
+	## Forced latch bypasses safe-start so smokes can inject without scrolling.
+	if _force_latch_on_next:
+		_force_latch_on_next = false
+		_attach_latch(segment, module_root)
+		return
+
 	if segment_index < GameConfig.SAFE_START_SEGMENT_COUNT:
 		return
 
 	var stride: int = _get_hazard_stride()
+
+	## Dedicated latch slot (non-hazard): never stack with curbs / overhead.
+	if _should_attach_latch(segment_index, stride):
+		_attach_latch(segment, module_root)
+		return
+
 	var is_hazard_slot: bool = segment_index % stride == 0
 
 	if is_hazard_slot:
@@ -60,6 +86,35 @@ func _can_coins() -> bool:
 	if _difficulty != null:
 		return _difficulty.can_spawn_coin()
 	return false
+
+
+func _can_latch() -> bool:
+	if GameConfig.FORCE_LATCH_SEQUENCE:
+		return true
+	if _difficulty != null:
+		return _difficulty.can_spawn_latch()
+	return GameConfig.LATCH_UNLOCK_LEVEL <= 0
+
+
+func _should_attach_latch(segment_index: int, stride: int) -> bool:
+	if not _can_latch():
+		return false
+
+	## Controlled early sequence always wins (dedicated latch slot, no hazard/coin).
+	## Wins even if stride has shrunk so index % stride == 0 — teach beat > curb.
+	if GameConfig.is_early_latch_segment(segment_index):
+		return true
+
+	## Continuing pattern after the teach list: stride + LATCH_GAP_OFFSET gaps.
+	## Never stack with a hazard slot (avoids mid-swing overhead kills).
+	if stride <= 0 or segment_index % stride == 0:
+		return false
+	var last_early: int = GameConfig.LATCH_SEGMENT_INDICES[
+		GameConfig.LATCH_SEGMENT_INDICES.size() - 1
+	]
+	if segment_index <= last_early:
+		return false
+	return segment_index % stride == GameConfig.LATCH_GAP_OFFSET
 
 
 func _is_coin_gap_slot(segment_index: int, stride: int) -> bool:
@@ -179,6 +234,20 @@ func _attach_double_curb(segment: Segment, module_root: Node2D) -> void:
 		module_root.add_child(module)
 		module.setup({"local_position": local_position})
 		module.activate()
+
+
+func _attach_latch(segment: Segment, module_root: Node2D) -> void:
+	var module: LatchModule = LATCH_SCENE.instantiate() as LatchModule
+	if module == null:
+		push_error("ModuleSpawner: failed to instantiate LatchModule.")
+		return
+
+	var local_position: Vector2 = GameConfig.get_latch_local_position(
+		segment.get_length()
+	)
+	module_root.add_child(module)
+	module.setup({"local_position": local_position})
+	module.activate()
 
 
 func _attach_coin(segment: Segment, module_root: Node2D, slot_index: int) -> void:
