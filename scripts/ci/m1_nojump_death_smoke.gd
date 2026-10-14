@@ -3,8 +3,10 @@ extends SceneTree
 ## Requires dedicated smoke userdata (scripts/ci/smoke_env.sh) — SaveManager writes on game_over.
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const MAX_FRAMES := 60 * 50
+const STATE_MAIN_MENU := 1
 const STATE_GAME_OVER := 4
 const LABEL := "M1 nojump-death smoke"
 
@@ -18,10 +20,18 @@ func _run() -> void:
 		return
 
 	change_scene_to_file("res://scenes/Main.tscn")
+	var started := false
 	for _i in range(MAX_FRAMES):
 		await physics_frame
 		var gsm := root.get_node_or_null("GameStateManager")
 		if gsm == null:
+			continue
+		if not started:
+			if int(gsm.get("current_state")) == STATE_MAIN_MENU:
+				if not Boot.ensure_playing_from_title(root, LABEL):
+					quit(1)
+					return
+			started = int(gsm.get("current_state")) != STATE_MAIN_MENU
 			continue
 		if int(gsm.get("current_state")) == STATE_GAME_OVER:
 			var container := root.get_node_or_null("Main/GameSceneContainer")

@@ -2,7 +2,8 @@ extends Node2D
 
 ## Run scene composition root.
 ## Contains World, CameraRig, and placeholder Player/UI roots only.
-## Must not reference score, save, ads, analytics, economy, shop, or leaderboard.
+## Persistence stays in SaveManager via EventBus (no direct save writes here).
+## Must not reference ads, analytics, economy, shop, or leaderboard.
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player/Player.tscn")
 const HUD_SCENE: PackedScene = preload("res://scenes/ui/HUD.tscn")
@@ -23,19 +24,37 @@ var _player: Player
 var _hud: HUD
 var _game_over_handled: bool = false
 var _bonus_score: int = 0
+var _run_begun: bool = false
 
 
 func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.player_collected_coin.connect(_on_player_collected_coin)
 	_run_loop.setup(_velocity_controller, _difficulty_director)
-	_velocity_controller.start_run()
+	_run_loop.stop()
 	_setup_ground()
 	_setup_segment_pipeline()
 	_setup_camera()
 	_setup_hud()
 	_spawn_player()
+	## Prepared for MAIN_MENU — scrolling / scoring start in begin_run().
+
+
+func begin_run() -> void:
+	if _run_begun:
+		return
+
+	_run_begun = true
+	_run_loop.start()
+	_velocity_controller.start_run()
+	_world_scroller.start()
+	if _hud != null:
+		_hud.visible = true
 	_log_debug("RUN STARTED")
+
+
+func is_run_active() -> bool:
+	return _run_begun
 
 
 func _physics_process(_delta: float) -> void:
@@ -103,8 +122,10 @@ func restart_run() -> void:
 		_player.respawn(_get_spawn_position())
 
 	if _hud != null:
+		_hud.visible = true
 		_hud.reset()
 
+	_run_begun = true
 	_run_loop.start()
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
 	_velocity_controller.start_run()
@@ -153,7 +174,7 @@ func _setup_segment_pipeline() -> void:
 	_module_spawner.setup(_difficulty_director)
 	_segment_manager.setup(_world, _module_spawner)
 	_world_scroller.setup(_world, _velocity_controller, _segment_manager)
-	_world_scroller.start()
+	## Do not start scrolling until begin_run() / restart_run().
 
 
 func _setup_camera() -> void:
@@ -169,6 +190,8 @@ func _setup_hud() -> void:
 	_hud = HUD_SCENE.instantiate() as HUD
 	_ui_root.add_child(_hud)
 	_hud.reset()
+	## Stay under title until begin_run(); TitleScreen layer is ≥ 20.
+	_hud.visible = false
 
 
 func _spawn_player() -> void:

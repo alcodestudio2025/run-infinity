@@ -9,8 +9,11 @@ extends SceneTree
 ## script compiles when launched with -s.
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const WARMUP_FRAMES: int = 90
+## After title start_game: need enough run frames so pre-death distance > post-restart window.
+const POST_START_FRAMES: int = 90
 const POST_RESTART_FRAMES: int = 60
 ## Must match GameStateManager.GameState
 const STATE_PLAYING: int = 2
@@ -40,8 +43,14 @@ func _run() -> void:
 		quit(1)
 		return
 
+	## M3.3 title gate: boot lands on MAIN_MENU; start explicitly (no silent auto-play).
+	if not Boot.ensure_playing_from_title(root, LABEL):
+		quit(1)
+		return
+	await _wait_frames(POST_START_FRAMES)
+
 	if int(gsm.get("current_state")) != STATE_PLAYING:
-		push_error("M1 smoke: expected PLAYING after warmup.")
+		push_error("M1 smoke: expected PLAYING after start_game.")
 		quit(1)
 		return
 
@@ -59,7 +68,7 @@ func _run() -> void:
 
 	var distance_before: float = float(velocity.get("distance_travelled"))
 	if distance_before <= 0.0:
-		push_error("M1 smoke: distance did not advance during warmup.")
+		push_error("M1 smoke: distance did not advance after start_game.")
 		quit(1)
 		return
 

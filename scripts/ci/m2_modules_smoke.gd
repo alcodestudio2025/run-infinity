@@ -6,8 +6,10 @@ extends SceneTree
 ##   godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const WARMUP_FRAMES: int = 90
+const POST_START_FRAMES: int = 60
 const RUN_FRAMES: int = 60 * 55
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
@@ -42,8 +44,14 @@ func _run() -> void:
 		quit(1)
 		return
 
+	## M3.3 title gate: explicit start_game (coverage unchanged after PLAYING).
+	if not Boot.ensure_playing_from_title(root, LABEL):
+		quit(1)
+		return
+	await _wait_frames(POST_START_FRAMES)
+
 	if int(gsm.get("current_state")) != STATE_PLAYING:
-		push_error("M2 smoke: expected PLAYING after warmup.")
+		push_error("M2 smoke: expected PLAYING after start_game.")
 		quit(1)
 		return
 

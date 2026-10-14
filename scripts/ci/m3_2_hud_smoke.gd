@@ -11,8 +11,10 @@ extends SceneTree
 ## Drives HUD methods after seeding SaveManager — does not rely on live kill scores.
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const WARMUP_FRAMES: int = 90
+const POST_START_FRAMES: int = 30
 const POST_CALL_FRAMES: int = 3
 ## Must match GameStateManager.GameState
 const STATE_PLAYING: int = 2
@@ -64,8 +66,19 @@ func _run() -> void:
 	await _wait_frames(WARMUP_FRAMES)
 
 	var gsm: Node = _game_state()
-	if gsm == null or int(gsm.get("current_state")) != STATE_PLAYING:
-		push_error("%s: expected PLAYING after warmup." % LABEL)
+	if gsm == null:
+		push_error("%s: GameStateManager missing." % LABEL)
+		quit(1)
+		return
+
+	## M3.3: start from title so HUD becomes visible and baseline is live.
+	if not Boot.ensure_playing_from_title(root, LABEL):
+		quit(1)
+		return
+	await _wait_frames(POST_START_FRAMES)
+
+	if int(gsm.get("current_state")) != STATE_PLAYING:
+		push_error("%s: expected PLAYING after start_game." % LABEL)
 		quit(1)
 		return
 

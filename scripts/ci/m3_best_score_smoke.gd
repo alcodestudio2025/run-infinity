@@ -9,8 +9,10 @@ extends SceneTree
 ## script compiles when launched with -s.
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const WARMUP_FRAMES: int = 90
+const POST_START_FRAMES: int = 60
 const POST_KILL_FRAMES: int = 5
 const POST_RESTART_FRAMES: int = 30
 ## Must match GameStateManager.GameState
@@ -103,8 +105,19 @@ func _run() -> void:
 	await _wait_frames(WARMUP_FRAMES)
 
 	var gsm: Node = _game_state()
-	if gsm == null or int(gsm.get("current_state")) != STATE_PLAYING:
-		push_error("M3 best-score smoke: expected PLAYING after warmup.")
+	if gsm == null:
+		push_error("M3 best-score smoke: GameStateManager missing.")
+		quit(1)
+		return
+
+	## M3.3 title gate: live kill/restart portion requires PLAYING via start_game.
+	if not Boot.ensure_playing_from_title(root, LABEL):
+		quit(1)
+		return
+	await _wait_frames(POST_START_FRAMES)
+
+	if int(gsm.get("current_state")) != STATE_PLAYING:
+		push_error("M3 best-score smoke: expected PLAYING after start_game.")
 		quit(1)
 		return
 

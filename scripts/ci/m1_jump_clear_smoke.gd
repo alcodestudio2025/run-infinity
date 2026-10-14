@@ -6,8 +6,10 @@ extends SceneTree
 ##   godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_jump_clear_smoke.gd
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
+const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const MAX_FRAMES: int = 60 * 45
+const STATE_MAIN_MENU: int = 1
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
 ## First hazard ≈ segment 3 after safe-start 2 (see GameConfig.estimate_first_hazard_distance).
@@ -32,6 +34,7 @@ func _run() -> void:
 		return
 
 	var jumped: bool = false
+	var started: bool = false
 	for _frame: int in range(MAX_FRAMES):
 		await physics_frame
 
@@ -41,6 +44,19 @@ func _run() -> void:
 			push_error("M1 jump smoke: scene graph incomplete.")
 			quit(1)
 			return
+
+		## M3.3: leave title once, then run the jump-clear loop.
+		if not started:
+			var state_now: int = int(gsm.get("current_state"))
+			if state_now == STATE_MAIN_MENU:
+				if not Boot.ensure_playing_from_title(root, LABEL):
+					quit(1)
+					return
+				continue
+			if state_now == STATE_PLAYING:
+				started = true
+			else:
+				continue
 
 		if int(gsm.get("current_state")) == STATE_GAME_OVER:
 			var velocity_dead: Node = game_scene.get_node_or_null("WorldVelocityController")
