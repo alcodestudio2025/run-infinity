@@ -122,8 +122,10 @@ func restart_run() -> void:
 		_player.respawn(_get_spawn_position())
 
 	if _hud != null:
+		_hud.visible = true
 		_hud.reset()
 
+	_run_begun = true
 	_run_loop.start()
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
 	_velocity_controller.start_run()
