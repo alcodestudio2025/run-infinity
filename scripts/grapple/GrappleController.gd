@@ -17,7 +17,8 @@ signal released(impulse: Vector2)
 signal swing_pose_updated(position: Vector2, velocity: Vector2)
 
 var _phase: int = GrappleState.Phase.IDLE
-var _simulator: GrappleSimulator = NullGrappleSimulator.new()
+## Prefer deterministic sim when available; fall back to null stub.
+var _simulator: GrappleSimulator = DeterministicGrappleSimulator.new()
 var _latch_provider: LatchProvider = LatchProvider.new()
 var _swing_params: GrappleSwingParams = GrappleSwingParams.from_config()
 var _host: GrappleHostSnapshot = GrappleHostSnapshot.new()
@@ -31,7 +32,7 @@ var _armed: bool = true
 
 func set_simulator(simulator: GrappleSimulator) -> void:
 	if simulator == null:
-		_simulator = NullGrappleSimulator.new()
+		_simulator = DeterministicGrappleSimulator.new()
 	else:
 		_simulator = simulator
 
