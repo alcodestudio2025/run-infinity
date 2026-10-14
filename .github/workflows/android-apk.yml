@@ -5,11 +5,13 @@ on:
     branches:
       - "cursor/m4-android-apk-f957"
       - "cursor/m4-1-mobile-input-f957"
+      - "cursor/m5-1-grapple-playable"
   pull_request:
-    ## Stacked APK PRs: M4 on M3.4 tip; M4.1 on M4 tip.
+    ## Stacked APK PRs: M4→M3.4, M4.1→M4, M5.1→M5.0 tip.
     branches:
       - "cursor/m3-4-android-touch-f957"
       - "cursor/m4-android-apk-f957"
+      - "cursor/m5-0-grapple-design"
   workflow_dispatch:
 
 ## Separate from headless smokes (godot-ci.yml). Produces a debug APK artifact only.
