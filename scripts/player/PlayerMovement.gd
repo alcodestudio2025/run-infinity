@@ -15,8 +15,8 @@ var _coyote_time_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _slide_time_left: float = 0.0
 var _slide_active: bool = false
-var _drag_start_position: Vector2 = Vector2.ZERO
-var _drag_active: bool = false
+var _touch_router: TouchGestureRouter
+var _touch_router_enabled: bool = false
 
 func setup(player: Player, config: PlayerConfig) -> void:
 	_player = player
@@ -26,10 +26,12 @@ func setup(player: Player, config: PlayerConfig) -> void:
 	_sprite = player.get_node("Sprite2D") as Sprite2D
 	_setup_hitbox_shape()
 	_setup_sprite_visual()
+	_setup_touch_router()
 
 func _physics_process(delta: float) -> void:
 	if _body == null or _player == null or _config == null:
 		return
+	_sync_touch_router_enabled()
 	if not _player.is_alive() or not GameStateManager.is_playing():
 		return
 
@@ -55,34 +57,26 @@ func _poll_action_input() -> void:
 	):
 		_queue_jump_buffer()
 
+
 func _unhandled_input(event: InputEvent) -> void:
-	_handle_input_event(event)
-
-
-func _input(event: InputEvent) -> void:
-	## Also listen on _input so jump/slide still work if another node marks the event handled.
-	_handle_input_event(event)
-
-
-func _handle_input_event(event: InputEvent) -> void:
-	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
+	if _player == null:
 		return
 
-	if event.is_action_pressed("ui_down") or _is_slide_key(event):
-		_start_slide()
-		return
+	_sync_touch_router_enabled()
 
-	if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_up") or _is_jump_key(event):
-		_queue_jump_buffer()
-		return
+	## Keyboard only while alive + PLAYING; polling remains the reliability path.
+	if _player.is_alive() and GameStateManager.is_playing():
+		if event.is_action_pressed("ui_down") or _is_slide_key(event):
+			_start_slide()
+			return
 
-	if event is InputEventMouseButton:
-		var mouse_event := event as InputEventMouseButton
-		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			_handle_pointer_input(mouse_event.pressed, mouse_event.position)
-	elif event is InputEventScreenTouch:
-		var touch_event := event as InputEventScreenTouch
-		_handle_pointer_input(touch_event.pressed, touch_event.position)
+		if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_up") or _is_jump_key(event):
+			_queue_jump_buffer()
+			return
+
+	## Pointer gestures via router (_unhandled_input so UI Controls can consume PLAY).
+	if _touch_router != null and _touch_router.handle_input_event(event):
+		get_viewport().set_input_as_handled()
 
 
 func _is_jump_key(event: InputEvent) -> bool:
@@ -102,23 +96,44 @@ func _is_slide_key(event: InputEvent) -> bool:
 		return false
 	return key_event.keycode in [KEY_S, KEY_DOWN, KEY_C]
 
-func _handle_pointer_input(pressed: bool, position: Vector2) -> void:
-	if pressed:
-		_drag_start_position = position
-		_drag_active = true
-		return
-	if _drag_active and not _try_slide_from_drag(position):
-		_queue_jump_buffer()
-	_drag_active = false
 
-func _try_slide_from_drag(end_position: Vector2) -> bool:
-	var drag_delta: Vector2 = end_position - _drag_start_position
-	if drag_delta.y < _config.slide_input_drag_threshold:
-		return false
-	if absf(drag_delta.y) <= absf(drag_delta.x):
-		return false
+func _setup_touch_router() -> void:
+	if _touch_router != null:
+		return
+	_touch_router = TouchGestureRouter.new()
+	_touch_router.name = "TouchGestureRouter"
+	add_child(_touch_router)
+	_touch_router.jump_requested.connect(_on_touch_jump_requested)
+	_touch_router.slide_requested.connect(_on_touch_slide_requested)
+	_touch_router_enabled = false
+	_touch_router.set_enabled(false)
+	_sync_touch_router_enabled()
+
+
+func _sync_touch_router_enabled() -> void:
+	if _touch_router == null:
+		return
+	var should_enable: bool = (
+		_player != null
+		and _player.is_alive()
+		and GameStateManager.is_playing()
+	)
+	if should_enable and not _touch_router_enabled:
+		_touch_router.reset()
+	_touch_router.set_enabled(should_enable)
+	_touch_router_enabled = should_enable
+
+
+func _on_touch_jump_requested() -> void:
+	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
+		return
+	_queue_jump_buffer()
+
+
+func _on_touch_slide_requested() -> void:
+	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
+		return
 	_start_slide()
-	return true
 
 func _handle_jump_input() -> void:
 	if _is_sliding() or _jump_buffer_left <= 0.0:
@@ -181,7 +196,8 @@ func reset_to_standing() -> void:
 	_jump_buffer_left = 0.0
 	_slide_time_left = 0.0
 	_slide_active = false
-	_drag_active = false
+	if _touch_router != null:
+		_touch_router.reset()
 	_apply_hitbox(_config.standing_hitbox_size, _config.standing_hitbox_position)
 	_apply_standing_visual()
 

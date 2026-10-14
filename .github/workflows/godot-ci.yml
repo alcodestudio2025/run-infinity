@@ -106,6 +106,13 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m3-3-title-smoke.log
           grep -q 'M3.3 title smoke PASS' /tmp/m3-3-title-smoke.log
 
+      - name: M3.4 touch smoke (tap/swipe router + PLAYING gates)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m3_4_touch_smoke.gd 2>&1 | tee /tmp/m3-4-touch-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m3-4-touch-smoke.log
+          grep -q 'M3.4 touch smoke PASS' /tmp/m3-4-touch-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail
