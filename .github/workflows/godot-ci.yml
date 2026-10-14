@@ -195,6 +195,13 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m5-1-2-c-balance-smoke.log
           grep -q 'M5.1.2-C balance smoke PASS' /tmp/m5-1-2-c-balance-smoke.log
 
+      - name: M5.1.2-D stabilize smoke (layout + GO/restart + spawn)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_2_d_stabilize_smoke.gd 2>&1 | tee /tmp/m5-1-2-d-stabilize-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m5-1-2-d-stabilize-smoke.log
+          grep -q 'M5.1.2-D stabilize smoke PASS' /tmp/m5-1-2-d-stabilize-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail

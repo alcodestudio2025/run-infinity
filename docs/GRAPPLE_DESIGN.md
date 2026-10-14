@@ -1,7 +1,7 @@
-# Grapple Design — Live Prototype (M5.1 → M5.1.2-A)
+# Grapple Design — Live Prototype (M5.1 → M5.1.2-D)
 
 **Package:** `res://scripts/grapple/` + `LatchModule`  
-**Engine:** Godot 4.7.2 · **Milestone:** M5.1.2-A (controls)
+**Engine:** Godot 4.7.2 · **Milestone:** M5.1.2-D (stabilize)
 
 Wired into live gameplay via `PlayerGrappleDriver`. On-screen JUMP/SLIDE buttons are primary; swipe is dormant.
 
@@ -49,6 +49,8 @@ Miss diagnosis: [`docs/GRAPPLE_MISS_DIAGNOSIS_M5_1_1.md`](GRAPPLE_MISS_DIAGNOSIS
 
 ## 3–8
 
-See prior M5.1 / M5.1.1 sections in git history for FSM, search vs rope, scroll model, latch spawn indices, and safety notes. Teach latches remain segments **4, 8, 11** unless Phase B retunes spawn density.
+See prior M5.1 / M5.1.1 sections in git history for FSM, search vs rope, scroll model, and safety notes.
 
-**Gate:** No M5.2 until M5.1 FINAL APK authorization.
+**Teach / density (M5.1.2-B):** early latch indices **4, 5, 8, 10, 11, 14** plus periodic denser latch stride; exclusive slot classifier prevents latch+hazard stacks. Balance: [`docs/BALANCE_M5_1.md`](BALANCE_M5_1.md).
+
+**Gate:** No intermediate APK on 5.1.2 branches. No M5.2 until M5.1 FINAL APK authorization after stacked PR review.

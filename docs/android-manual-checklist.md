@@ -1,4 +1,4 @@
-# Android manual device checklist (M4)
+# Android manual device checklist (M4 → M5.1)
 
 **MANUAL ONLY — requires a physical device or emulator with `adb`.**  
 This document is a human QA checklist. It does **not** claim an automated pass.  
@@ -95,9 +95,14 @@ Use the **M5.1 FINAL** APK only after ChatGPT authorization (no intermediate APK
 | G10 | Latch scrolls off / recycled mid-swing | Grapple ends cleanly; no stuck rope | ☐ |
 | G11 | Swipe | No slide (swipe dormant; buttons own SLIDE) | ☐ |
 | G12 | Faster fall | Descent snappier than M5.1.1; ascent similar | ☐ |
+| G13 | Early latches denser | Latches appear often enough in first ~15 segments | ☐ |
+| G14 | Coins multi-lane | Ground / jump / swing heights reachable | ☐ |
+| G15 | Speed ramp feel | Pace clearly rises by mid-run; max still playable | ☐ |
+| G16 | Multitouch | JUMP + SLIDE fingers independent; no stuck state | ☐ |
 
 **Do not claim Grapple feel PASS without this human pass.**  
-**No smartphone playtest is claimed by CI for M5.1.1.**
+**No smartphone playtest is claimed by CI for M5.1 / M5.1.2.**  
+**M5.1.2-A/B/C/D produce no intermediate APK — use FINAL only after authorization.**
 
 ## Out of scope for this checklist
 
