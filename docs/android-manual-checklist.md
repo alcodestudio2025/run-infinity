@@ -77,9 +77,9 @@ Use a fresh CI APK from the M4.1 PR after installing. Compare feel to M4.
 **Do not claim latency PASS in CI** — only after this human device pass.  
 **M4.1 is technically approved but second physical playtest may still be pending.**
 
-## M5.1 Grapple playtest
+## M5.1 / M5.1.1 Grapple playtest
 
-Use CI APK from the M5.1 PR. Teach latches spawn on early segments (cyan/amber diamonds).
+Use CI APK from the M5.1.1 PR (stacked on M5.1). Teach latches spawn on early segments (cyan/amber diamonds).
 
 | # | Step | Expected | Pass? |
 |---|------|----------|-------|
@@ -89,10 +89,13 @@ Use CI APK from the M5.1 PR. Teach latches spawn on early segments (cyan/amber d
 | G4 | Auto-release | One release + forward speed burst / upward pop | ☐ |
 | G5 | No latch air tap | No attach; jump arc continues | ☐ |
 | G6 | Swipe down | Slide, never Grapple | ☐ |
-| G7 | Hit obstacle while swinging | Game Over; restart clean | ☐ |
+| G7 | Hit obstacle while swinging | Game Over; restart clean (no tunnel) | ☐ |
 | G8 | Restart then Grapple again | No stuck rope/state | ☐ |
+| G9 | Release boost feel | Fast forward burst, not runaway speed | ☐ |
+| G10 | Latch scrolls off / recycled mid-swing | Grapple ends cleanly; no stuck rope | ☐ |
 
-**Do not claim Grapple feel PASS without this human pass.**
+**Do not claim Grapple feel PASS without this human pass.**  
+**No smartphone playtest is claimed by CI for M5.1.1.**
 
 ## Out of scope for this checklist
 

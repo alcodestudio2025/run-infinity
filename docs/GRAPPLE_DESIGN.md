@@ -1,7 +1,7 @@
-# Grapple Design — Live Prototype (M5.1)
+# Grapple Design — Live Prototype (M5.1 / M5.1.1)
 
 **Package:** `res://scripts/grapple/` + `LatchModule`  
-**Engine:** Godot 4.7.2 · **Milestone:** M5.1 (playable prototype)
+**Engine:** Godot 4.7.2 · **Milestone:** M5.1.1 (safety hardening)
 
 Wired into live gameplay via `PlayerGrappleDriver`. Router still only classifies tap/swipe; player context chooses jump vs air ability.
 
@@ -69,7 +69,14 @@ Hard cap `MAX_ATTACH_DURATION_SEC=0.85`. Swing default `0.45s`.
 - Live sim `scroll_speed=0`; latch globals updated by scrolling segments.
 - Swing pose uses **live latch world position** + sim rope offset.
 - Release: `player.velocity.y = impulse.y`; `impulse.x` → `apply_speed_boost` (~0.35s).
+- Boost ceiling: `GameConfig.MAX_BOOST_WORLD_SPEED` (900) — distinct from progression `MAX_WORLD_SPEED` (580).
 - Constant-ω launch (not smoothstep′ at u=1). Pose sample `RELEASE_POSE_U=0.88`.
+
+### M5.1.1 safety
+
+- Swing pose moves along a **path-swept** sample (`SWING_COLLISION_STEP_PX=12`) and queries `Layers.OBSTACLE` areas via `PhysicsDirectSpaceState2D`, then `resolve_body_overlap` on hazard modules — no silent tunnel through lethals.
+- Invalid / recycled latch (`is_latch_valid() == false` or freed source) → **controlled abort** (controller reset, no release boost). Stale sim anchor is never kept as a permanent pose fallback.
+- Segment pool frees on `SegmentManager` exit so M5.1 latch CI does not leak orphan RIDs (no `|| true` masking).
 
 ---
 
@@ -88,9 +95,11 @@ Local pose: center X, `y=-220`. Visual: cyan/amber diamond. Group `Tags.ANCHOR` 
 | `m5_1_latch_module_smoke` | ANCHOR lifecycle |
 | `m5_1_grapple_live_smoke` | Main/GameScene input path |
 | `m5_1_grapple_fps_smoke` | 30/60/120 Hz tolerances |
+| `m5_1_1_grapple_safety_smoke` | Path collide, boost cap, latch abort |
+| `m5_1_1_ci_exit_control.sh` | Negative: non-zero Godot exit must fail CI |
 
 ---
 
 ## 8. Non-goals (still out)
 
-Combo multipliers, Verlet rope, final art, ads/IAP. **M5.2+ only after ChatGPT review.**
+Combo multipliers, Verlet rope, final art, ads/IAP. **M5.2+ only after ChatGPT review of M5.1.1.**
