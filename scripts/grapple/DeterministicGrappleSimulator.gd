@@ -153,16 +153,9 @@ func compute_release_impulse() -> Vector2:
 	## Preview launch without mutating phase (controller will call reset).
 	var duration: float = maxf(float(config.get("swing_duration")), 0.0001)
 	var u: float = clampf(swing_elapsed / duration, 0.0, 1.0)
-	var angle: float = lerpf(start_angle, end_angle, _smoothstep(u))
-	var u_sample: float = 0.92
-	var deased: float = _smoothstep_derivative(u_sample)
-	var omega: float = (end_angle - start_angle) * deased / duration
-	var tangential: Vector2 = Vector2(-sin(angle), cos(angle)) * rope_length * omega
-	var boost := Vector2(
-		float(config.get("release_forward_boost")),
-		-float(config.get("release_upward_boost")),
-	)
-	return tangential + boost
+	## Sample pose near end-of-arc; release omega uses constant rate (not smoothstep′).
+	var u_pose: float = minf(u, float(SimConfig.RELEASE_POSE_U))
+	return _launch_velocity_at_u(u_pose)
 
 
 func reset() -> void:
@@ -323,19 +316,29 @@ func _auto_release(u: float) -> void:
 	release_count += 1
 	phase = Phase.RELEASED
 
-	var angle: float = lerpf(start_angle, end_angle, _smoothstep(u))
+	## Pose uses eased u; launch uses constant omega so u→1 stays non-zero & dt-stable.
+	var u_pose: float = minf(clampf(u, 0.0, 1.0), float(SimConfig.RELEASE_POSE_U))
+	last_release_velocity = _launch_velocity_at_u(u_pose)
+	player_vel = last_release_velocity
+	attached_latch_index = -1
+
+
+## Constant angular rate over swing_duration (rad/s). Independent of smoothstep
+## pose easing — avoids derivative=0 at u=1 and keeps forward launch predictable.
+func _constant_omega() -> float:
 	var duration: float = maxf(float(config.get("swing_duration")), 0.0001)
-	var u_sample: float = 0.92
-	var deased: float = _smoothstep_derivative(u_sample)
-	var omega: float = (end_angle - start_angle) * deased / duration
+	return (end_angle - start_angle) / duration
+
+
+func _launch_velocity_at_u(u: float) -> Vector2:
+	var angle: float = lerpf(start_angle, end_angle, _smoothstep(u))
+	var omega: float = _constant_omega()
 	var tangential: Vector2 = Vector2(-sin(angle), cos(angle)) * rope_length * omega
 	var boost := Vector2(
 		float(config.get("release_forward_boost")),
 		-float(config.get("release_upward_boost")),
 	)
-	last_release_velocity = tangential + boost
-	player_vel = last_release_velocity
-	attached_latch_index = -1
+	return tangential + boost
 
 
 func _step_free(dt: float) -> void:

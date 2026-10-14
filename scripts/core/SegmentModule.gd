@@ -2,7 +2,7 @@ class_name SegmentModule
 extends Node2D
 
 ## Abstract base for attachable segment content.
-## Concrete modules: low/tall/overhead obstacles, coins; swing later.
+## Concrete modules: low/tall/overhead obstacles, coins, latches (Grapple).
 
 
 func setup(_context: Dictionary = {}) -> void:

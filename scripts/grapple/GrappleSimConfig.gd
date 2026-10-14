@@ -8,7 +8,9 @@ extends RefCounted
 const FIXED_DT: float = 1.0 / 60.0
 
 ## Max / min rope distance for a valid attach (px, world / player-relative).
-@export var max_attach_radius: float = 280.0
+## Live gameplay search uses GrappleConfig (LatchSelector). Keep these aligned:
+## max_attach_radius == GrappleConfig.LATCH_MAX_RANGE for standalone parity.
+@export var max_attach_radius: float = 480.0
 @export var min_attach_radius: float = 48.0
 
 ## Latch must sit ahead (+X) and above (−Y in Godot) of the player.
@@ -22,6 +24,10 @@ const FIXED_DT: float = 1.0 / 60.0
 
 ## Brief swing window (proposed band ~0.35–0.55s).
 @export var swing_duration: float = 0.45
+
+## Pose sample for release impulse (smoothstep angle). Omega uses constant
+## (end−start)/duration — not smoothstep′ — so launch stays non-zero at u→1.
+const RELEASE_POSE_U: float = 0.88
 
 ## Arc swept around the latch during the swing (radians, clockwise in Godot Y-down).
 ## Positive = swing "forward" (increasing angle from initial attach).

@@ -2,7 +2,7 @@
 
 Living document for AL Code Studio. Update when mechanics are confirmed, deferred, or changed.
 
-**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.0
+**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1
 
 ---
 
@@ -29,21 +29,21 @@ Living document for AL Code Studio. Update when mechanics are confirmed, deferre
 | Title → Play gate | Confirmed | |
 | Debug Android APK install | Confirmed (M4) | |
 
-## 3. Mechanics approved for future (not live in game)
+## 3. Mechanics in prototype / approved future
 
-### Grapple (M5 — design + sim in M5.0; live play in M5.1+)
+### Grapple (M5.1 playable prototype)
 
-**Gameplay contract (approved):**
+**Live in game (prototype):**
 
 1. First tap on ground → jump.
-2. Second tap while airborne → Grapple **request**.
-3. Automatic search for a valid latch ahead and above the player.
-4. Attach + short automatic swing.
-5. Automatic release with forward boost (no manual aim / no indefinite hang).
-6. Miss → jump trajectory continues.
-7. Future: chain latches + multipliers.
+2. Second tap while airborne → Grapple request (not a second jump).
+3. Valid latch ahead+above (`LatchModule` / `Tags.ANCHOR`) → attach + rope visual.
+4. Short auto swing → auto-release → upward velocity + world speed burst.
+5. Miss → jump continues. Death/restart clears Grapple.
 
-**M5.0 status:** Standalone architecture + deterministic simulator + headless smokes under `scripts/grapple/`. **Not wired** into `PlayerMovement` / `TouchGestureRouter` / Main. Spec: [`docs/GRAPPLE_DESIGN.md`](GRAPPLE_DESIGN.md).
+**Still future:** latch chains, multipliers, final art. Spec: [`docs/GRAPPLE_DESIGN.md`](GRAPPLE_DESIGN.md).
+
+**M4.1 note:** second physical playtest for touch latency still pending — not device-validated here.
 
 ## 4. Experimental mechanics
 
@@ -67,12 +67,15 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | Sliding hitbox | 64×38 @ (0,13) | Clears overhead |
 | Touch swipe / tap slop | 6% / 2.5% of viewport height (min 48 / 24 px) | Classification |
 | `EARLY_TAP_DWELL_SEC` | 0.048 s | M4.1 early jump commit |
+| Grapple search range | 480 px (`GrappleConfig`) | Live LatchSelector |
+| Swing duration | 0.45 s | Auto-release window |
+| Latch early segments | 4, 8, 11 | Teach sequence |
 
 ## 6. Architectural decisions
 
-1. **Intent vs movement:** `TouchGestureRouter` classifies gestures and emits intents; `PlayerMovement` applies physics. No rope/ability logic in the router.
-2. **M4.1 jump latency:** Early tap dwell (~48ms) while within tap slop; early slide when drag crosses swipe threshold; immediate `_perform_jump()` when legal on touch jump. **Rejected:** irrevocable jump on press (would break swipe-down).
-3. **M5.0 Grapple (sim only):** `GrappleController` FSM + `DeterministicGrappleSimulator` (fixed-dt arc). Explicit air-ability request API; no generic ability framework. Live wiring deferred to M5.1.
+1. **Intent vs movement:** `TouchGestureRouter` classifies gestures; `PlayerMovement` maps tap → jump or air ability. No Grapple logic in the router.
+2. **M4.1 jump latency:** Early tap dwell (~48ms); early slide on swipe threshold; immediate jump apply when legal.
+3. **M5.1 Grapple live:** `PlayerGrappleDriver` hosts controller+sim; forward release = world speed boost; live latch globals while scrolling; search params from `GrappleConfig`.
 4. **Saves:** smokes use isolated XDG userdata; never write developer saves from CI.
 
 ## 7. Gameplay change log
@@ -87,7 +90,8 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | M4 | First Android debug APK |
 | **M4.1** | Touch early-commit + immediate jump apply; slide overhead physics smoke; Grapple recorded as M5-approved design only; this GDD created |
 | **M5.0** | Grapple architecture + deterministic simulator + docs/smokes; gameplay behavior unchanged; live integration deferred |
+| **M5.1** | Live Grapple prototype: PlayerGrappleDriver, LatchModule teach sequence, rope placeholder, live/FPS smokes |
 
 ---
 
-*Do not start M5.1 (live Grapple wiring) until ChatGPT review of M5.0.*
+*Do not start M5.2 (chains/multipliers) until ChatGPT review of M5.1.*

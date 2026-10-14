@@ -2,6 +2,7 @@ class_name PlayerMovement
 extends Node
 
 ## Movement component: gravity, jump, coyote time, jump buffer, and slide.
+## Airborne second tap / KEY_G → PlayerGrappleDriver.request_air_ability (not jump).
 
 var _player: Player
 var _body: CharacterBody2D
@@ -17,6 +18,7 @@ var _slide_time_left: float = 0.0
 var _slide_active: bool = false
 var _touch_router: TouchGestureRouter
 var _touch_router_enabled: bool = false
+var _grapple_driver: PlayerGrappleDriver
 
 func setup(player: Player, config: PlayerConfig) -> void:
 	_player = player
@@ -27,6 +29,7 @@ func setup(player: Player, config: PlayerConfig) -> void:
 	_setup_hitbox_shape()
 	_setup_sprite_visual()
 	_setup_touch_router()
+	_setup_grapple_driver()
 
 func _physics_process(delta: float) -> void:
 	if _body == null or _player == null or _config == null:
@@ -41,10 +44,11 @@ func _physics_process(delta: float) -> void:
 	_update_timers(step)
 	_update_slide()
 	_handle_jump_input()
-	_apply_gravity(step)
-	_body.move_and_slide()
-	_refresh_coyote_time()
-	_sync_player_state()
+	if not _is_grapple_pose_locked():
+		_apply_gravity(step)
+		_body.move_and_slide()
+		_refresh_coyote_time()
+		_sync_player_state()
 
 
 func _poll_action_input() -> void:
@@ -55,7 +59,7 @@ func _poll_action_input() -> void:
 		Input.is_action_just_pressed("ui_accept")
 		or Input.is_action_just_pressed("ui_up")
 	):
-		_queue_jump_buffer()
+		_handle_jump_or_air_intent()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -70,8 +74,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_start_slide()
 			return
 
+		if _is_grapple_debug_key(event):
+			_try_request_air_ability()
+			return
+
 		if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_up") or _is_jump_key(event):
-			_queue_jump_buffer()
+			_handle_jump_or_air_intent()
 			return
 
 	## Pointer gestures via router (_unhandled_input so UI Controls can consume PLAY).
@@ -86,6 +94,15 @@ func _is_jump_key(event: InputEvent) -> bool:
 	if not key_event.pressed or key_event.echo:
 		return false
 	return key_event.keycode in [KEY_SPACE, KEY_W, KEY_UP, KEY_Z]
+
+
+func _is_grapple_debug_key(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return false
+	return key_event.keycode == KEY_G
 
 
 func _is_slide_key(event: InputEvent) -> bool:
@@ -110,6 +127,19 @@ func _setup_touch_router() -> void:
 	_sync_touch_router_enabled()
 
 
+func _setup_grapple_driver() -> void:
+	if _grapple_driver != null:
+		return
+	_grapple_driver = PlayerGrappleDriver.new()
+	_grapple_driver.name = "PlayerGrappleDriver"
+	add_child(_grapple_driver)
+	_grapple_driver.setup(_player)
+
+
+func get_grapple_driver() -> PlayerGrappleDriver:
+	return _grapple_driver
+
+
 func _sync_touch_router_enabled() -> void:
 	if _touch_router == null:
 		return
@@ -120,6 +150,10 @@ func _sync_touch_router_enabled() -> void:
 	)
 	if should_enable and not _touch_router_enabled:
 		_touch_router.reset()
+	if not should_enable and _touch_router_enabled:
+		## Disable path: clear Grapple so Title/GO cannot keep a stale air request.
+		if _grapple_driver != null:
+			_grapple_driver.reset()
 	_touch_router.set_enabled(should_enable)
 	_touch_router_enabled = should_enable
 
@@ -127,14 +161,12 @@ func _sync_touch_router_enabled() -> void:
 func _on_touch_jump_requested() -> void:
 	## Apply immediately when legal so touch jump is not deferred to the next
 	## physics frame (release→buffer→_physics_process was a perceptible lag).
+	## Router stays jump-only; air ability is decided here (never jump+grapple).
 	if _player == null or not _player.is_alive() or not GameStateManager.is_playing():
 		return
 	if _is_sliding():
 		return
-	if _can_jump():
-		_perform_jump()
-	else:
-		_queue_jump_buffer()
+	_handle_jump_or_air_intent(true)
 
 
 func _on_touch_slide_requested() -> void:
@@ -142,23 +174,63 @@ func _on_touch_slide_requested() -> void:
 		return
 	_start_slide()
 
+
+## Shared jump vs air-ability intent. Never both from one gesture.
+func _handle_jump_or_air_intent(immediate_jump: bool = false) -> void:
+	if _is_sliding() or _is_grappling():
+		return
+	if _can_jump():
+		if immediate_jump:
+			_perform_jump()
+		else:
+			_queue_jump_buffer()
+		return
+	if _try_request_air_ability():
+		return
+	## Airborne miss / unarmed: keep jump buffer for landing coyote only.
+	_queue_jump_buffer()
+
+
+func _try_request_air_ability() -> bool:
+	if _grapple_driver == null:
+		return false
+	if _body == null or _body.is_on_floor():
+		return false
+	if not _player.is_alive() or not GameStateManager.is_playing():
+		return false
+	if not _grapple_driver.can_request_air_ability():
+		return false
+	return _grapple_driver.request_air_ability()
+
+
+func _is_grappling() -> bool:
+	return _grapple_driver != null and _grapple_driver.is_grappling()
+
+
+func _is_grapple_pose_locked() -> bool:
+	return _grapple_driver != null and _grapple_driver.is_pose_locked()
+
 func _handle_jump_input() -> void:
-	if _is_sliding() or _jump_buffer_left <= 0.0:
+	if _is_sliding() or _is_grappling() or _jump_buffer_left <= 0.0:
 		return
 	if not _can_jump():
 		return
 	_perform_jump()
 
 func request_jump() -> void:
-	_queue_jump_buffer()
+	_handle_jump_or_air_intent(false)
 
 
 func request_slide() -> void:
 	_start_slide()
 
 
+func request_air_ability() -> bool:
+	return _try_request_air_ability()
+
+
 func _queue_jump_buffer() -> void:
-	if not _is_sliding():
+	if not _is_sliding() and not _is_grappling():
 		_jump_buffer_left = _config.jump_buffer_time
 
 func _can_jump() -> bool:
@@ -186,7 +258,12 @@ func _start_slide() -> void:
 	EventBus.player_slid.emit()
 
 func _can_slide() -> bool:
-	return _body.is_on_floor() and not _is_sliding() and _player.is_alive()
+	return (
+		_body.is_on_floor()
+		and not _is_sliding()
+		and _player.is_alive()
+		and not _is_grappling()
+	)
 
 func _update_slide() -> void:
 	if not _is_sliding():
@@ -209,6 +286,8 @@ func reset_to_standing() -> void:
 	_slide_active = false
 	if _touch_router != null:
 		_touch_router.reset()
+	if _grapple_driver != null:
+		_grapple_driver.reset()
 	_apply_hitbox(_config.standing_hitbox_size, _config.standing_hitbox_position)
 	_apply_standing_visual()
 
