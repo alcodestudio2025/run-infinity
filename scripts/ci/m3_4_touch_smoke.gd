@@ -133,21 +133,42 @@ func _run() -> void:
 		return
 	print("%s: R2 PASS (swipe down → slide, not jump)" % LABEL)
 
-	# --- Case R3: sub-threshold vertical move → tap/jump ---
+	# --- Case R3: small movement within tap slop → jump ---
 	_reset_counts(jump_count, slide_count)
 	var sub_start := Vector2(150, 300)
-	var sub_end := Vector2(150, 300 + maxf(1.0, live_swipe * 0.4))
+	var sub_end := Vector2(150, 300 + maxf(1.0, live_slop * 0.5))
 	router.call("begin_touch", 0, sub_start)
 	router.call("update_touch", 0, sub_end)
 	var r3: String = str(router.call("end_touch", 0, sub_end))
 	if r3 != "jump" or int(jump_count[0]) != 1 or int(slide_count[0]) != 0:
 		push_error(
-			"%s: R3 sub-threshold expected jump got result=%s jumps=%d slides=%d"
+			"%s: R3 within-slop expected jump got result=%s jumps=%d slides=%d"
 			% [LABEL, r3, int(jump_count[0]), int(slide_count[0])]
 		)
 		quit(1)
 		return
-	print("%s: R3 PASS (sub-threshold → jump)" % LABEL)
+	print("%s: R3 PASS (within tap slop → jump)" % LABEL)
+
+	# --- Case R3b: ambiguous mid-zone (past slop, short of swipe) → none ---
+	_reset_counts(jump_count, slide_count)
+	var mid_dy: float = (live_slop + live_swipe) * 0.5
+	if mid_dy <= live_slop:
+		mid_dy = live_slop + 1.0
+	if mid_dy >= live_swipe:
+		mid_dy = maxf(live_slop + 1.0, live_swipe - 1.0)
+	var mid_start := Vector2(160, 320)
+	var mid_end := Vector2(160, 320 + mid_dy)
+	router.call("begin_touch", 0, mid_start)
+	router.call("update_touch", 0, mid_end)
+	var r3b: String = str(router.call("end_touch", 0, mid_end))
+	if r3b != "none" or int(jump_count[0]) != 0 or int(slide_count[0]) != 0:
+		push_error(
+			"%s: R3b mid-zone expected none got result=%s jumps=%d slides=%d (mid_dy=%0.1f slop=%0.1f swipe=%0.1f)"
+			% [LABEL, r3b, int(jump_count[0]), int(slide_count[0]), mid_dy, live_slop, live_swipe]
+		)
+		quit(1)
+		return
+	print("%s: R3b PASS (ambiguous mid-zone → none)" % LABEL)
 
 	# --- Case R4: horizontal-dominant swipe → none ---
 	_reset_counts(jump_count, slide_count)
@@ -164,6 +185,22 @@ func _run() -> void:
 		quit(1)
 		return
 	print("%s: R4 PASS (horizontal → none)" % LABEL)
+
+	# --- Case R4b: long upward swipe → none (must not jump) ---
+	_reset_counts(jump_count, slide_count)
+	var up_start := Vector2(90, 500)
+	var up_end := Vector2(90, 500 - live_swipe - 8.0)
+	router.call("begin_touch", 0, up_start)
+	router.call("update_touch", 0, up_end)
+	var r4b: String = str(router.call("end_touch", 0, up_end))
+	if r4b != "none" or int(jump_count[0]) != 0 or int(slide_count[0]) != 0:
+		push_error(
+			"%s: R4b upward swipe expected none got result=%s jumps=%d slides=%d"
+			% [LABEL, r4b, int(jump_count[0]), int(slide_count[0])]
+		)
+		quit(1)
+		return
+	print("%s: R4b PASS (upward swipe → none)" % LABEL)
 
 	# --- Case R5: multi-touch — secondary finger must not duplicate actions ---
 	_reset_counts(jump_count, slide_count)
@@ -534,7 +571,9 @@ func _run() -> void:
 		push_error("%s: L7 GameScene.restart_run missing." % LABEL)
 		quit(1)
 		return
-	# Begin a gesture during GAME_OVER, then restart — must not complete as jump.
+	# Begin a gesture during GAME_OVER, then restart — must not complete as jump/slide.
+	_reset_counts(live_jumps, live_slides)
+	_reset_counts(router_jumps, router_slides)
 	live_router.call("begin_touch", 0, Vector2(160, 160))
 	game_scene.call("restart_run")
 	await _wait_frames(POST_RESTART_FRAMES)
@@ -548,25 +587,70 @@ func _run() -> void:
 	# Refresh player/router after restart (may be same nodes).
 	player = _find_player(game_scene)
 	movement = _find_movement(player)
-	live_router = _find_touch_router(player)
-	if player == null or movement == null or live_router == null:
+	var router_after: Object = _find_touch_router(player)
+	if player == null or movement == null or router_after == null:
 		push_error("%s: L7 player/router missing after restart." % LABEL)
 		quit(1)
 		return
+	## Rebind router signal counters if the router instance was replaced.
+	if router_after != live_router:
+		live_router = router_after
+		_reset_counts(router_jumps, router_slides)
+		if live_router.has_signal("jump_requested"):
+			live_router.jump_requested.connect(
+				func() -> void: router_jumps[0] = int(router_jumps[0]) + 1
+			)
+		if live_router.has_signal("slide_requested"):
+			live_router.slide_requested.connect(
+				func() -> void: router_slides[0] = int(router_slides[0]) + 1
+			)
+	else:
+		live_router = router_after
+
 	_reset_counts(live_jumps, live_slides)
-	# Stale end after restart+reset should be none; fresh tap should jump once.
+	_reset_counts(router_jumps, router_slides)
+	# Stale end after restart+reset must be none and must not emit any intent/bus events.
 	var stale: String = str(live_router.call("end_touch", 0, Vector2(160, 160)))
+	await _wait_frames(GESTURE_SETTLE_FRAMES)
 	if stale != "none":
-		# If restart recreated router, end_touch on new instance is none anyway.
-		pass
+		push_error(
+			"%s: L7 stale end_touch after restart expected none got %s (pre-restart gesture leaked)."
+			% [LABEL, stale]
+		)
+		quit(1)
+		return
+	if int(router_jumps[0]) != 0 or int(router_slides[0]) != 0:
+		push_error(
+			"%s: L7 stale gesture emitted router jumps=%d slides=%d after restart."
+			% [LABEL, int(router_jumps[0]), int(router_slides[0])]
+		)
+		quit(1)
+		return
+	if int(live_jumps[0]) != 0 or int(live_slides[0]) != 0:
+		push_error(
+			"%s: L7 stale gesture emitted player_jumped=%d player_slid=%d after restart."
+			% [LABEL, int(live_jumps[0]), int(live_slides[0])]
+		)
+		quit(1)
+		return
+
+	_reset_counts(live_jumps, live_slides)
+	_reset_counts(router_jumps, router_slides)
 	live_router.call("begin_touch", 0, Vector2(170, 170))
 	var l7: String = str(live_router.call("end_touch", 0, Vector2(171, 171)))
 	await _wait_frames(GESTURE_SETTLE_FRAMES)
-	if l7 != "jump":
-		push_error("%s: L7 fresh tap after restart expected jump got %s" % [LABEL, l7])
+	if l7 != "jump" or int(router_jumps[0]) != 1:
+		push_error(
+			"%s: L7 fresh tap after restart expected jump×1 got result=%s router_jumps=%d"
+			% [LABEL, l7, int(router_jumps[0])]
+		)
 		quit(1)
 		return
-	print("%s: L7 PASS (restart clears gesture; fresh tap=%s)" % [LABEL, l7])
+	if int(router_slides[0]) != 0:
+		push_error("%s: L7 fresh tap unexpectedly emitted slide." % LABEL)
+		quit(1)
+		return
+	print("%s: L7 PASS (restart clears gesture; stale=none; fresh tap=%s)" % [LABEL, l7])
 
 	print("M3.4 touch smoke PASS")
 	quit(0)

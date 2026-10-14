@@ -139,17 +139,27 @@ func _classify_gesture(start_pos: Vector2, end_pos: Vector2) -> String:
 	var tap_slop: float = get_tap_slop_px(viewport_size)
 	var abs_x: float = absf(delta.x)
 	var abs_y: float = absf(delta.y)
+	var travel: float = delta.length()
 
-	## Horizontal-dominant swipe beyond tap slop → no action.
-	if abs_x > abs_y and abs_x >= tap_slop:
+	## Tap / small movement within slop → jump (any direction inside tolerance).
+	if travel <= tap_slop:
+		return "jump"
+
+	## Beyond slop: horizontal-dominant → none.
+	if abs_x >= abs_y:
 		return "none"
 
-	## Dominant downward swipe past threshold → slide.
-	if delta.y >= swipe_threshold and abs_y > abs_x:
+	## Vertical-dominant beyond slop.
+	## Clear downward swipe past threshold → slide.
+	if delta.y >= swipe_threshold:
 		return "slide"
 
-	## Tap / short non-down movement → jump.
-	return "jump"
+	## Clear upward swipe past threshold → none (never jump).
+	if delta.y <= -swipe_threshold:
+		return "none"
+
+	## Ambiguous mid-zone (past slop, short of a clear vertical swipe) → none.
+	return "none"
 
 
 func _emit_result(result: String) -> void:
