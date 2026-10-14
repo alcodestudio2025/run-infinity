@@ -59,11 +59,29 @@ adb shell am force-stop "$PKG"
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
 ```
 
+## M4.1 second playtest (input + slide)
+
+Use a fresh CI APK from the M4.1 PR after installing. Compare feel to M4.
+
+| # | Step | Expected | Pass? |
+|---|------|----------|-------|
+| A | Rapid tap jump | Jump feels snappier than M4; clears low curb | ☐ |
+| B | Still-press jump | Brief still press (no swipe) still jumps once | ☐ |
+| C | Swipe down → slide | Squash visual + clears **overhead** without dying | ☐ |
+| D | Swipe down never jumps | Clear downward swipes do not launch the player | ☐ |
+| E | Swipe up / sideways | No jump, no slide | ☐ |
+| F | Tap then immediate swipe | No double action; no stuck slide/jump | ☐ |
+| G | Game Over + restart | Gestures idle on GO; restart accepts fresh taps | ☐ |
+| H | Best persist | Still correct after force-stop (regression) | ☐ |
+
+**Do not claim latency PASS in CI** — only after this human device pass.
+
 ## Out of scope for this checklist
 
 - Release signing / Play Store upload
 - Performance profiling / battery
-- Automated UI tests (Espresso / Maestro) — not part of M4
+- Automated UI tests (Espresso / Maestro) — not part of M4 / M4.1
+- Grapple (M5 design only)
 
 ## Sign-off (human)
 
