@@ -16,7 +16,9 @@ const LATCH_MIN_AHEAD: float = 24.0
 const LATCH_MAX_ABOVE: float = 360.0
 ## Reject latches below the player's feet by more than this (rare / ground clutter).
 const LATCH_MAX_BELOW: float = 40.0
-## Absolute max distance from player to latch.
+## Absolute max distance from player to latch (live LatchSelector source of truth).
+## Rope length at attach = player↔latch distance (≤ this). Standalone
+## GrappleSimConfig.max_attach_radius mirrors this value.
 const LATCH_MAX_RANGE: float = 480.0
 
 # -- Seek / attach -------------------------------------------------------------

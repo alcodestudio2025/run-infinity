@@ -8,7 +8,9 @@ extends RefCounted
 const FIXED_DT: float = 1.0 / 60.0
 
 ## Max / min rope distance for a valid attach (px, world / player-relative).
-@export var max_attach_radius: float = 280.0
+## Live gameplay search uses GrappleConfig (LatchSelector). Keep these aligned:
+## max_attach_radius == GrappleConfig.LATCH_MAX_RANGE for standalone parity.
+@export var max_attach_radius: float = 480.0
 @export var min_attach_radius: float = 48.0
 
 ## Latch must sit ahead (+X) and above (−Y in Godot) of the player.

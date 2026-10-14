@@ -202,14 +202,28 @@ func _on_game_over(_final_score: int, _distance: float) -> void:
 func _apply_swing_pose(sim_position: Vector2, _sim_velocity: Vector2) -> void:
 	if _body == null or _simulator == null:
 		return
-	var latch_pos: Vector2 = _simulator.get_anchor_position()
-	var rope_offset: Vector2 = sim_position - latch_pos
-	## Y from world latch + rope (latch Y does not scroll).
+	## Rope offset from sim; latch world pos must be LIVE (WorldScroller moves modules).
+	var sim_latch: Vector2 = _simulator.get_anchor_position()
+	var rope_offset: Vector2 = sim_position - sim_latch
+	var latch_pos: Vector2 = _live_latch_world(sim_latch)
+	## Y from live latch + rope. Latch Y is stable; X scrolls with the world.
 	_body.global_position.y = latch_pos.y + rope_offset.y
 	## Small relative X for arc feel — do NOT add world scroll as +X velocity.
 	var arc_dx: float = (rope_offset.x - _attach_rope_offset_x) * SWING_POSE_X_SCALE
 	_body.global_position.x = _attach_player_x + arc_dx
 	_body.velocity = Vector2.ZERO
+
+
+func _live_latch_world(fallback: Vector2) -> Vector2:
+	var active: LatchPoint = _controller.get_active_latch() if _controller != null else null
+	if active == null or active.source == null or not is_instance_valid(active.source):
+		return fallback
+	var src: Object = active.source
+	if src.has_method("get_latch_global_position"):
+		return src.call("get_latch_global_position") as Vector2
+	if src is Node2D:
+		return (src as Node2D).global_position
+	return fallback
 
 
 func _apply_release_impulse(impulse: Vector2) -> void:
@@ -252,13 +266,9 @@ func _ensure_rope_line() -> void:
 
 
 func _update_rope_visual() -> void:
-	if _rope_line == null or _simulator == null or not _pose_locked:
+	if _rope_line == null or _simulator == null or not _pose_locked or _player == null:
 		return
-	var latch_world: Vector2 = _simulator.get_anchor_position()
-	## Prefer live node position when the latch still exists in the tree.
-	var active: LatchPoint = _controller.get_active_latch() if _controller != null else null
-	if active != null and active.source is Node2D and is_instance_valid(active.source):
-		latch_world = (active.source as Node2D).global_position
+	var latch_world: Vector2 = _live_latch_world(_simulator.get_anchor_position())
 	_rope_line.clear_points()
 	_rope_line.add_point(_player.to_local(latch_world))
 	_rope_line.add_point(Vector2.ZERO)

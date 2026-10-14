@@ -246,6 +246,18 @@ func _run() -> void:
 	_free_node(good_latch)
 	print("%s: C5 PASS (auto-release ×1)" % LABEL)
 
+	# --- Case 5b: land after release ---
+	await _wait_until_grounded(player, 240)
+	if player == null or not bool(player.call("is_alive")):
+		push_error("%s: C5b player should still be alive after release." % LABEL)
+		quit(1)
+		return
+	if not bool((player as CharacterBody2D).is_on_floor()):
+		push_error("%s: C5b expected landing on floor after release." % LABEL)
+		quit(1)
+		return
+	print("%s: C5b PASS (land after release)" % LABEL)
+
 	# --- Case 8: swipe down → slide not grapple ---
 	await _wait_until_grounded(player, 180)
 	_clear_anchors(game_scene)
