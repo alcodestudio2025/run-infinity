@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CharacterSelectionScreen.gd" id="1_select"]
+
+[node name="CharacterSelectionScreen" type="CanvasLayer"]
+layer = 21
+script = ExtResource("1_select")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.04, 0.05, 0.08, 0.92)
+
+[node name="CenterRoot" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="CenterRoot"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterRoot/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(1, 0.92, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "CHARACTER"
+
+[node name="SubtitleLabel" type="Label" parent="CenterRoot/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.92, 0.88, 0.82, 0.95)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 6
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Choose your runner"
+
+[node name="Choices" type="HBoxContainer" parent="CenterRoot/Content"]
+layout_mode = 2
+theme_override_constants/separation = 48
+alignment = 1
+
+[node name="KaiButton" type="Button" parent="CenterRoot/Content/Choices"]
+custom_minimum_size = Vector2(360, 220)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_focus_color = Color(0.08, 0.07, 0.06, 1)
+text = "Kai
+Eroe Atletico"
+
+[node name="NovaButton" type="Button" parent="CenterRoot/Content/Choices"]
+custom_minimum_size = Vector2(360, 220)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_focus_color = Color(0.08, 0.07, 0.06, 1)
+text = "Nova
+Esploratrice"
+
+[node name="ConfirmButton" type="Button" parent="CenterRoot/Content"]
+custom_minimum_size = Vector2(320, 96)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_focus_color = Color(0.08, 0.07, 0.06, 1)
+text = "CONFIRM"
+
+[node name="BackButton" type="Button" parent="CenterRoot/Content"]
+custom_minimum_size = Vector2(240, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_colors/font_focus_color = Color(0.08, 0.07, 0.06, 1)
+text = "BACK"
+
+[node name="HintLabel" type="Label" parent="CenterRoot/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.92, 0.88, 0.82, 0.9)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 6
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Selected: Kai — Confirm to play"

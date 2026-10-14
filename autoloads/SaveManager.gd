@@ -24,6 +24,19 @@ func reset_data() -> void:
 	save_data()
 
 
+func get_selected_character_id() -> String:
+	if data == null:
+		data = SaveData.new()
+	return CharacterCatalog.normalize_id(data.selected_character_id)
+
+
+func set_selected_character_id(character_id: String) -> void:
+	if data == null:
+		data = SaveData.new()
+	data.selected_character_id = CharacterCatalog.normalize_id(character_id)
+	save_data()
+
+
 func _connect_game_over() -> void:
 	if EventBus.game_over.is_connected(_on_game_over):
 		return
