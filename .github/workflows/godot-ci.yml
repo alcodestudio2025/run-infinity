@@ -92,6 +92,13 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m3-best-score-smoke.log
           grep -q 'M3 best-score smoke PASS' /tmp/m3-best-score-smoke.log
 
+      - name: M3.2 HUD smoke (best display + NEW BEST contract)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m3_2_hud_smoke.gd 2>&1 | tee /tmp/m3-2-hud-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m3-2-hud-smoke.log
+          grep -q 'M3.2 HUD smoke PASS' /tmp/m3-2-hud-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail
