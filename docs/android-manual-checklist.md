@@ -1,0 +1,77 @@
+# Android manual device checklist (M4)
+
+**MANUAL ONLY — requires a physical device or emulator with `adb`.**  
+This document is a human QA checklist. It does **not** claim an automated pass.  
+Do not mark CI green based on this file alone. Automated APK checks live in `scripts/ci/m4_apk_verify.sh`.
+
+## Prerequisites
+
+| Item | Note |
+|------|------|
+| APK | `build/android/RunInfinity-debug.apk` (from Agent A / CI artifact) |
+| Optional hash | `build/android/RunInfinity-debug.apk.sha256` — run `scripts/ci/m4_apk_verify.sh` first |
+| Device | USB debugging on, or emulator running |
+| Tools | `adb` from Android SDK `platform-tools` |
+
+Package (default): `com.alcodestudio.runinfinity` — override with `RI_ANDROID_PACKAGE` if the export used a different id.
+
+## Install + logcat
+
+```bash
+# Optional helper (install -r + filtered logcat):
+scripts/android/adb_install_and_logcat.sh build/android/RunInfinity-debug.apk
+
+# Or manual:
+adb devices
+adb install -r build/android/RunInfinity-debug.apk
+adb logcat -c
+adb logcat -s godot:V Godot:V *:S
+# Launch the app from the device launcher, then reproduce steps below.
+```
+
+Stop logcat with Ctrl+C. Save a capture if filing a bug:
+
+```bash
+adb logcat -d -s godot:V Godot:V *:S > /tmp/ri-m4-logcat.txt
+```
+
+## Smartphone play checklist
+
+Mark each row only after observing it on device. Leave unchecked if not tested.
+
+| # | Step | Expected | Pass? |
+|---|------|----------|-------|
+| 1 | Cold launch | App opens in **landscape**; Title / main menu visible (PLAY), not mid-run | ☐ |
+| 2 | Title → Play | Tap/press **PLAY**; run starts (world scrolls, score ticks) | ☐ |
+| 3 | Jump | Swipe up / jump input; player clears a low obstacle | ☐ |
+| 4 | Slide | Swipe down / slide input; player ducks under an overhead hazard | ☐ |
+| 5 | Collisions | Hitting an uncleared obstacle ends the run (Game Over) | ☐ |
+| 6 | Game Over | Game Over UI shows with score; controls stop advancing the run | ☐ |
+| 7 | Restart | Restart / Play again returns to a fresh run (or Title → Play per UI) | ☐ |
+| 8 | Best persist | Beat a score, note **BEST**; finish run; BEST on HUD/menu matches | ☐ |
+| 9 | Kill / reopen | Force-stop app (`adb shell am force-stop <package>`), relaunch; BEST still present | ☐ |
+
+Force-stop + relaunch helper:
+
+```bash
+PKG="${RI_ANDROID_PACKAGE:-com.alcodestudio.runinfinity}"
+adb shell am force-stop "$PKG"
+adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
+```
+
+## Out of scope for this checklist
+
+- Release signing / Play Store upload
+- Performance profiling / battery
+- Automated UI tests (Espresso / Maestro) — not part of M4
+
+## Sign-off (human)
+
+| Field | Value |
+|-------|-------|
+| Tester | |
+| Device / OS | |
+| APK SHA-256 | |
+| Date | |
+| Result | PASS / FAIL / PARTIAL — **manual only** |
+| Notes | |
