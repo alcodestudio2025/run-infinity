@@ -74,14 +74,32 @@ Use a fresh CI APK from the M4.1 PR after installing. Compare feel to M4.
 | G | Game Over + restart | Gestures idle on GO; restart accepts fresh taps | ☐ |
 | H | Best persist | Still correct after force-stop (regression) | ☐ |
 
-**Do not claim latency PASS in CI** — only after this human device pass.
+**Do not claim latency PASS in CI** — only after this human device pass.  
+**M4.1 is technically approved but second physical playtest may still be pending.**
+
+## M5.1 Grapple playtest
+
+Use CI APK from the M5.1 PR. Teach latches spawn on early segments (cyan/amber diamonds).
+
+| # | Step | Expected | Pass? |
+|---|------|----------|-------|
+| G1 | Ground tap | Jump only | ☐ |
+| G2 | Second tap in air near latch | Attach + visible rope | ☐ |
+| G3 | Oscillation | Brief readable swing | ☐ |
+| G4 | Auto-release | One release + forward speed burst / upward pop | ☐ |
+| G5 | No latch air tap | No attach; jump arc continues | ☐ |
+| G6 | Swipe down | Slide, never Grapple | ☐ |
+| G7 | Hit obstacle while swinging | Game Over; restart clean | ☐ |
+| G8 | Restart then Grapple again | No stuck rope/state | ☐ |
+
+**Do not claim Grapple feel PASS without this human pass.**
 
 ## Out of scope for this checklist
 
 - Release signing / Play Store upload
 - Performance profiling / battery
-- Automated UI tests (Espresso / Maestro) — not part of M4 / M4.1
-- Grapple (M5 design only)
+- Automated UI tests (Espresso / Maestro)
+- Grapple chains / multipliers (M5.2+)
 
 ## Sign-off (human)
 
