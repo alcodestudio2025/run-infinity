@@ -31,8 +31,10 @@ Configurable progression / scoring for the M5.1 cycle. Source of truth: `GameCon
 |-------|------:|
 | `SCORE_PER_DISTANCE` | 1.0 |
 | `COIN_SCORE_VALUE` | 300 |
+| `COIN_COMPAT_PERIOD` | 3 |
 
-A short teach coin sequence (~8 coins ≈ 2400) is noticeable next to ~8–12k distance points in a full run.
+A short teach coin sequence (~8 coins ≈ 2400) is noticeable next to ~8–12k distance points in a full run.  
+Late-run coins use compatible co-placement when stride→1 — see [`docs/COIN_DENSITY_M5_1.md`](COIN_DENSITY_M5_1.md).
 
 ## Player feel (from 5.1.2-A)
 

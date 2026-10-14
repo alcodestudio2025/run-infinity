@@ -63,15 +63,27 @@ func populate_segment(segment: Segment, segment_index: int) -> void:
 	## Dedicated latch slot (non-hazard): never stack with curbs / overhead.
 	if _should_attach_latch(segment_index, stride):
 		_attach_latch(segment, module_root)
+		## Optional grapple-lane coin beside the latch (not inside the diamond).
+		if _should_attach_compat_coin(segment_index):
+			_attach_compat_coin(
+				segment,
+				module_root,
+				GameConfig.COIN_LANE_GRAPPLE,
+				GameConfig.COIN_SLOT_RIGHT,
+			)
 		return
 
 	var is_hazard_slot: bool = segment_index % stride == 0
 
 	if is_hazard_slot:
-		_attach_hazard(segment, module_root, segment_index)
+		var pattern: HazardPattern = _pick_hazard_pattern(segment_index)
+		_attach_hazard_pattern(segment, module_root, pattern)
+		## Compatible coin on the clear path for this hazard — preserves density.
+		if _should_attach_compat_coin(segment_index):
+			_attach_compat_coin_for_hazard(segment, module_root, pattern, segment_index)
 		return
 
-	## Coins only on gap segments — never stacked on the same slice as a hazard/latch.
+	## Gap coins when stride leaves empty slices (stride > 1).
 	if _can_coins() and _is_coin_gap_slot(segment_index, stride):
 		_attach_coin_sequence(segment, module_root, segment_index)
 
@@ -119,10 +131,18 @@ func _should_attach_latch(segment_index: int, stride: int) -> bool:
 
 
 func _is_coin_gap_slot(segment_index: int, stride: int) -> bool:
-	## Coins on non-hazard segments, not adjacent to the previous hazard slot.
-	if segment_index % stride == 1:
-		return true
-	return false
+	## Gap coins need stride > 1 (stride 1 has no remainder slots).
+	if stride <= 1:
+		return false
+	## Coins on non-hazard segments immediately after a hazard beat.
+	return segment_index % stride == 1
+
+
+func _should_attach_compat_coin(segment_index: int) -> bool:
+	if not _can_coins():
+		return false
+	var period: int = maxi(GameConfig.COIN_COMPAT_PERIOD, 1)
+	return segment_index % period == GameConfig.COIN_COMPAT_OFFSET
 
 
 func _attach_hazard(
@@ -130,7 +150,14 @@ func _attach_hazard(
 	module_root: Node2D,
 	segment_index: int,
 ) -> void:
-	var pattern: HazardPattern = _pick_hazard_pattern(segment_index)
+	_attach_hazard_pattern(segment, module_root, _pick_hazard_pattern(segment_index))
+
+
+func _attach_hazard_pattern(
+	segment: Segment,
+	module_root: Node2D,
+	pattern: HazardPattern,
+) -> void:
 	match pattern:
 		HazardPattern.TALL_CURB:
 			_attach_tall_obstacle(segment, module_root)
@@ -140,6 +167,52 @@ func _attach_hazard(
 			_attach_double_curb(segment, module_root)
 		_:
 			_attach_low_curb(segment, module_root)
+
+
+func _attach_compat_coin_for_hazard(
+	segment: Segment,
+	module_root: Node2D,
+	pattern: HazardPattern,
+	segment_index: int,
+) -> void:
+	## Lane + X chosen so the clear action still collects (never inside the hazard AABB).
+	var lane: int = GameConfig.COIN_LANE_JUMP
+	var slot: int = GameConfig.COIN_SLOT_RIGHT
+	match pattern:
+		HazardPattern.OVERHEAD:
+			## Slide clear → ground lane, X clear of overhead anchor (0.22).
+			lane = GameConfig.COIN_LANE_GROUND
+			slot = (
+				GameConfig.COIN_SLOT_LEFT
+				if segment_index % 2 == 0
+				else GameConfig.COIN_SLOT_RIGHT
+			)
+		HazardPattern.DOUBLE_CURB:
+			## Jump between the pair (−0.28 / 0.28) at mid X.
+			lane = GameConfig.COIN_LANE_JUMP
+			slot = GameConfig.COIN_SLOT_MID
+		HazardPattern.TALL_CURB:
+			## Committed jump; place ahead/behind tall anchor (0.18).
+			lane = GameConfig.COIN_LANE_JUMP
+			slot = (
+				GameConfig.COIN_SLOT_LEFT
+				if segment_index % 2 == 0
+				else GameConfig.COIN_SLOT_RIGHT
+			)
+		_:
+			## Low curb: jump arc over curb (0.12) toward right slot.
+			lane = GameConfig.COIN_LANE_JUMP
+			slot = GameConfig.COIN_SLOT_RIGHT
+	_attach_compat_coin(segment, module_root, lane, slot)
+
+
+func _attach_compat_coin(
+	segment: Segment,
+	module_root: Node2D,
+	lane_index: int,
+	slot_index: int,
+) -> void:
+	_attach_coin_at_lane(segment, module_root, slot_index, lane_index)
 
 
 func _pick_hazard_pattern(segment_index: int) -> HazardPattern:
@@ -292,6 +365,7 @@ func _attach_coin_at_lane(
 
 
 ## Smoke helper: classify what populate_segment would attach (no scene required).
+## Primary kind only — use debug_segment_has_coin for co-placed rewards.
 func debug_classify_segment(segment_index: int, stride: int = -1) -> StringName:
 	if segment_index < GameConfig.SAFE_START_SEGMENT_COUNT:
 		return &"safe"
@@ -312,3 +386,39 @@ func debug_classify_segment(segment_index: int, stride: int = -1) -> StringName:
 	if _can_coins() and _is_coin_gap_slot(segment_index, use_stride):
 		return &"coin"
 	return &"empty"
+
+
+## True when a gap coin or compatible co-placed coin would spawn.
+func debug_segment_has_coin(segment_index: int, stride: int = -1) -> bool:
+	if segment_index < GameConfig.SAFE_START_SEGMENT_COUNT:
+		return false
+	if not _can_coins():
+		return false
+	var use_stride: int = stride if stride > 0 else _get_hazard_stride()
+	if _should_attach_latch(segment_index, use_stride):
+		return _should_attach_compat_coin(segment_index)
+	if segment_index % use_stride == 0:
+		return _should_attach_compat_coin(segment_index)
+	return _is_coin_gap_slot(segment_index, use_stride)
+
+
+## Lane for co-placed / gap coin (−1 if none). 0 ground, 1 jump, 2 grapple.
+func debug_segment_coin_lane(segment_index: int, stride: int = -1) -> int:
+	if not debug_segment_has_coin(segment_index, stride):
+		return -1
+	var use_stride: int = stride if stride > 0 else _get_hazard_stride()
+	if _should_attach_latch(segment_index, use_stride):
+		return GameConfig.COIN_LANE_GRAPPLE
+	if segment_index % use_stride == 0:
+		var pattern: HazardPattern = _pick_hazard_pattern(segment_index)
+		match pattern:
+			HazardPattern.OVERHEAD:
+				return GameConfig.COIN_LANE_GROUND
+			HazardPattern.DOUBLE_CURB:
+				return GameConfig.COIN_LANE_JUMP
+			HazardPattern.TALL_CURB:
+				return GameConfig.COIN_LANE_JUMP
+			_:
+				return GameConfig.COIN_LANE_JUMP
+	## Gap sequence rotates lanes.
+	return segment_index % 3

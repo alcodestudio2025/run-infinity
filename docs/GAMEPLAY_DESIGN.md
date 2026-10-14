@@ -108,7 +108,8 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | **M5.1.2-B** | Denser hazards/latches; multi-lane coins; deterministic content smoke |
 | **M5.1.2-C** | Perceptible speed ramp; difficulty tick; coin 300; balance sheet + smoke |
 | **M5.1.2-D** | Stabilize: landscape layouts, GO/restart, full CI suite; no APK until FINAL auth |
+| **M5.1.2-E** | Compatible coin co-placement so late-run stride=1 still has regular coin opportunities |
 
 ---
 
-*M5.1 cycle complete pending FINAL APK authorization. No M5.2 until then.*
+*M5.1 content gate (E) pending review. No FINAL APK / M5.2 until authorization.*

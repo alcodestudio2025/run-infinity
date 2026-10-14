@@ -113,7 +113,13 @@ func _run() -> void:
 		push_error("%s: S6 denser hazards expected≥12 got %d %s" % [LABEL, hazards6, c6])
 		quit(1)
 		return
-	print("%s: S6 PASS level6 stride=%d %s" % [LABEL, stride6, c6])
+	## Compatible co-placement keeps coin opportunities when stride==1 (no gap slots).
+	var coins6: int = int(c6.get("coin_slots", 0))
+	if coins6 < 8:
+		push_error("%s: S6 expected compatible coins≥8 got %d %s" % [LABEL, coins6, c6])
+		quit(1)
+		return
+	print("%s: S6 PASS level6 stride=%d coins=%d %s" % [LABEL, stride6, coins6, c6])
 
 	## Multi-seed stability: classification must be identical for same level/index
 	## (deterministic — "seed" here is difficulty level as the only entropy).
@@ -127,18 +133,18 @@ func _run() -> void:
 			return
 	print("%s: D1 PASS (deterministic multi-level scans)" % LABEL)
 
-	## Solvability: never latch+hazard same index; never coin on hazard index.
+	## Solvability: never latch+hazard same primary; coins may co-locate on clear path.
 	difficulty.set("current_level", 3)
 	for i: int in range(SCAN_SEGMENTS):
 		var kind: StringName = spawner.call("debug_classify_segment", i) as StringName
 		if kind == &"latch":
-			## Latch occupies the slot exclusively.
+			## Latch primary never shares with a curb/overhead primary.
 			pass
 		if str(kind) == "safe" and i >= 2:
 			push_error("%s: unexpected safe after start at %d" % [LABEL, i])
 			quit(1)
 			return
-	print("%s: V1 PASS (exclusive slot classifier)" % LABEL)
+	print("%s: V1 PASS (exclusive hazard/latch primary; coins may co-locate)" % LABEL)
 
 	print("%s PASS" % LABEL)
 	quit(0)
@@ -154,6 +160,7 @@ func _scan(spawner: Node, level: int) -> Dictionary:
 		"double": 0,
 		"coin": 0,
 		"empty": 0,
+		"coin_slots": 0,
 	}
 	for i: int in range(SCAN_SEGMENTS):
 		var kind: String = str(spawner.call("debug_classify_segment", i))
@@ -161,6 +168,8 @@ func _scan(spawner: Node, level: int) -> Dictionary:
 			counts[kind] = int(counts[kind]) + 1
 		else:
 			counts[kind] = 1
+		if spawner.has_method("debug_segment_has_coin") and bool(spawner.call("debug_segment_has_coin", i)):
+			counts["coin_slots"] = int(counts["coin_slots"]) + 1
 	counts["level"] = level
 	return counts
 
