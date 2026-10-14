@@ -5,6 +5,7 @@ var data: SaveData
 
 func _ready() -> void:
 	load_data()
+	_connect_game_over()
 
 
 func load_data() -> void:
@@ -21,3 +22,28 @@ func save_data() -> void:
 func reset_data() -> void:
 	data = SaveData.new()
 	save_data()
+
+
+func _connect_game_over() -> void:
+	if EventBus.game_over.is_connected(_on_game_over):
+		return
+	EventBus.game_over.connect(_on_game_over)
+
+
+func _on_game_over(final_score: int, distance: float) -> void:
+	if data == null:
+		data = SaveData.new()
+
+	var changed := false
+
+	data.total_runs += 1
+	changed = true
+
+	if distance > 0.0:
+		data.total_distance += distance
+
+	if final_score > data.high_score:
+		data.high_score = final_score
+
+	if changed:
+		save_data()

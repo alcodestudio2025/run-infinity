@@ -1,16 +1,21 @@
 extends SceneTree
 
 ## Headless M1 smoke: boot main scene, advance frames, force game over + restart.
-## Usage: godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_core_loop_smoke.gd
+## Requires dedicated smoke userdata (scripts/ci/smoke_env.sh) — SaveManager may write on game_over.
+## Usage: source scripts/ci/smoke_env.sh && ri_smoke_env_setup && \
+##   godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m1_core_loop_smoke.gd
 ##
 ## Autoload singletons are resolved by node path (not global identifiers) so this
 ## script compiles when launched with -s.
+
+const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
 
 const WARMUP_FRAMES: int = 90
 const POST_RESTART_FRAMES: int = 60
 ## Must match GameStateManager.GameState
 const STATE_PLAYING: int = 2
 const STATE_GAME_OVER: int = 4
+const LABEL := "M1 core-loop smoke"
 
 
 func _initialize() -> void:
@@ -18,6 +23,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if not Guard.require_isolated(self, LABEL):
+		return
+
 	var err: Error = change_scene_to_file("res://scenes/Main.tscn")
 	if err != OK:
 		push_error("M1 smoke: failed to load Main.tscn (%s)" % error_string(err))
