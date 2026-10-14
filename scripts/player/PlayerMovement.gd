@@ -146,6 +146,10 @@ func request_jump() -> void:
 	_queue_jump_buffer()
 
 
+func request_slide() -> void:
+	_start_slide()
+
+
 func _queue_jump_buffer() -> void:
 	if not _is_sliding():
 		_jump_buffer_left = _config.jump_buffer_time
