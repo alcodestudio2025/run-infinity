@@ -64,3 +64,13 @@ jobs:
           set -euo pipefail
           godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m2_modules_smoke.gd 2>&1 | tee /tmp/m2-smoke.log
           grep -q 'M2 modules smoke PASS' /tmp/m2-smoke.log
+
+      - name: M3 best-score smoke (persist high_score on game_over)
+        run: |
+          set -euo pipefail
+          # Isolated user:// — do not touch developer save_data.json
+          export XDG_DATA_HOME="/tmp/ri-m3-best-score-xdg"
+          rm -rf "$XDG_DATA_HOME"
+          mkdir -p "$XDG_DATA_HOME"
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m3_best_score_smoke.gd 2>&1 | tee /tmp/m3-best-score-smoke.log
+          grep -q 'M3 best-score smoke PASS' /tmp/m3-best-score-smoke.log
