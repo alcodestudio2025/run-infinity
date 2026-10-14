@@ -11,7 +11,7 @@ Output: `build/android/RunInfinity-debug.apk` + `RunInfinity-debug.apk.sha256`.
 | versionName | `0.4.0-debug` | `version/name` in `export_presets.cfg` |
 | versionCode | `4` | `version/code` in `export_presets.cfg` |
 | Preset name | `Android` | must match CLI `--export-debug "Android"` |
-| Orientation | Landscape | from `project.godot` (`window/handheld/orientation=1`) |
+| Orientation | Landscape | from `project.godot` (`window/handheld/orientation=0` = Landscape) |
 | Permissions | none extra (`internet=false`) | flip flags in `export_presets.cfg` only if required |
 
 The package ID is a **proposed** reverse-DNS id for first-playable / sideload testing. It is **not** Google Play–approved and may change before any store submission.
@@ -24,7 +24,8 @@ The package ID is a **proposed** reverse-DNS id for first-playable / sideload te
 | JDK | OpenJDK 17+ (21 OK for debug). `java` + `keytool` on PATH |
 | Android SDK | Installed by `scripts/android/setup_android_sdk.sh` |
 | Export templates | `4.7.2.stable` (auto-installed by `export_debug_apk.sh` if missing) |
-| Debug keystore | Generated locally (`android` / `android`); **never** commit |
+| Debug keystore | Generated locally (alias `androiddebugkey`, password `android`); **never** commit |
+| Project setting | `rendering/textures/vram_compression/import_etc2_astc=true` (required by Godot for Android) |
 
 ## Exact commands (from repo root)
 
@@ -39,7 +40,7 @@ export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 ./scripts/android/configure_godot_android.sh
 # Optional: eval the export lines printed at the end, or re-export manually:
 #   export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
-#   export GODOT_ANDROID_KEYSTORE_DEBUG_USER=android
+#   export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
 #   export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
 
 # 3) Headless debug export

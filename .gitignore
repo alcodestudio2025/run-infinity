@@ -18,6 +18,7 @@ desktop.ini
 # Android debug APK build outputs (never commit binaries)
 build/android/*.apk
 build/android/*.apk.sha256
+build/android/*.apk.idsig
 build/android/*.aab
 
 # Editor / IDE

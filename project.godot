@@ -27,7 +27,7 @@ AudioManager="*res://autoloads/AudioManager.gd"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/handheld/orientation=1
+window/handheld/orientation=0
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -48,3 +48,4 @@ window/stretch/aspect="expand"
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

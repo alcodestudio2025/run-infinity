@@ -13,7 +13,8 @@ EDITOR_SETTINGS="${EDITOR_SETTINGS:-$GODOT_CONFIG_DIR/editor_settings-4.7.tres}"
 
 # Prefer standard Android debug keystore location; fall back to Godot's keystores dir.
 DEBUG_KEYSTORE="${GODOT_ANDROID_KEYSTORE_DEBUG_PATH:-${RI_ANDROID_DEBUG_KEYSTORE:-$HOME/.android/debug.keystore}}"
-DEBUG_USER="${GODOT_ANDROID_KEYSTORE_DEBUG_USER:-android}"
+# Godot 4.7 DEFAULT_ANDROID_KEYSTORE_DEBUG_USER matches the SDK debug keystore alias.
+DEBUG_USER="${GODOT_ANDROID_KEYSTORE_DEBUG_USER:-androiddebugkey}"
 DEBUG_PASS="${GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD:-android}"
 
 # Resolve JAVA_HOME for Godot export/android/java_sdk_path
@@ -49,9 +50,11 @@ mkdir -p "$GODOT_CONFIG_DIR"
 
 if [[ ! -f "$DEBUG_KEYSTORE" ]]; then
   echo "Generating debug keystore at $DEBUG_KEYSTORE (alias=$DEBUG_USER)..."
+  # Match Android SDK / Godot 4.7 debug keystore conventions (PKCS12, androiddebugkey).
   keytool -genkeypair \
     -v \
     -keystore "$DEBUG_KEYSTORE" \
+    -storetype PKCS12 \
     -storepass "$DEBUG_PASS" \
     -keypass "$DEBUG_PASS" \
     -alias "$DEBUG_USER" \
