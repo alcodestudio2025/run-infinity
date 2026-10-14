@@ -143,23 +143,36 @@ jobs:
       - name: M5.1 latch module smoke (ANCHOR spawn + invalidate)
         run: |
           set -euo pipefail
-          ## Godot may exit 1 on benign RID leaks after PASS — assert the PASS line.
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_latch_module_smoke.gd 2>&1 | tee /tmp/m5-1-latch-smoke.log || true
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_latch_module_smoke.gd 2>&1 | tee /tmp/m5-1-latch-smoke.log
           grep -q 'M5.1 latch-module smoke: PASS' /tmp/m5-1-latch-smoke.log
 
       - name: M5.1 grapple live smoke (input + attach + release)
         run: |
           set -euo pipefail
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_live_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-live-smoke.log || true
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_live_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-live-smoke.log
           grep -q 'userdata isolation OK' /tmp/m5-1-grapple-live-smoke.log
           grep -q 'M5.1 grapple-live smoke PASS' /tmp/m5-1-grapple-live-smoke.log
 
       - name: M5.1 grapple FPS smoke (30/60/120 Hz tolerances)
         run: |
           set -euo pipefail
-          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_fps_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-fps-smoke.log || true
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_grapple_fps_smoke.gd 2>&1 | tee /tmp/m5-1-grapple-fps-smoke.log
           grep -q 'userdata isolation OK' /tmp/m5-1-grapple-fps-smoke.log
           grep -q 'M5.1 grapple-fps smoke PASS' /tmp/m5-1-grapple-fps-smoke.log
+
+      - name: M5.1.1 grapple safety smoke (path collide + boost cap + latch abort)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_1_1_grapple_safety_smoke.gd 2>&1 | tee /tmp/m5-1-1-safety-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m5-1-1-safety-smoke.log
+          grep -q 'M5.1.1 grapple-safety smoke PASS' /tmp/m5-1-1-safety-smoke.log
+
+      - name: M5.1.1 CI exit-code control (negative must fail)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ci/m5_1_1_ci_exit_control.sh
+          scripts/ci/m5_1_1_ci_exit_control.sh 2>&1 | tee /tmp/m5-1-1-ci-exit-control.log
+          grep -q 'M5.1.1 CI exit-code control PASS' /tmp/m5-1-1-ci-exit-control.log
 
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |

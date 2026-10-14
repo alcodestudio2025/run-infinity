@@ -2,7 +2,7 @@
 
 Living document for AL Code Studio. Update when mechanics are confirmed, deferred, or changed.
 
-**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1
+**Engine:** Godot 4.7.2 · **Target:** Android landscape · **Last updated:** M5.1.1
 
 ---
 
@@ -70,13 +70,15 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | Grapple search range | 480 px (`GrappleConfig`) | Live LatchSelector |
 | Swing duration | 0.45 s | Auto-release window |
 | Latch early segments | 4, 8, 11 | Teach sequence |
+| `MAX_BOOST_WORLD_SPEED` | 900 | Grapple release scroll ceiling (vs max 580) |
 
 ## 6. Architectural decisions
 
 1. **Intent vs movement:** `TouchGestureRouter` classifies gestures; `PlayerMovement` maps tap → jump or air ability. No Grapple logic in the router.
 2. **M4.1 jump latency:** Early tap dwell (~48ms); early slide on swipe threshold; immediate jump apply when legal.
 3. **M5.1 Grapple live:** `PlayerGrappleDriver` hosts controller+sim; forward release = world speed boost; live latch globals while scrolling; search params from `GrappleConfig`.
-4. **Saves:** smokes use isolated XDG userdata; never write developer saves from CI.
+4. **M5.1.1 safety:** path-swept obstacle queries during swing; boost hard-cap; latch recycle abort; CI exit codes not masked.
+5. **Saves:** smokes use isolated XDG userdata; never write developer saves from CI.
 
 ## 7. Gameplay change log
 
@@ -91,7 +93,8 @@ Source of truth: `scripts/core/GameConfig.gd` + `PlayerConfig` exports.
 | **M4.1** | Touch early-commit + immediate jump apply; slide overhead physics smoke; Grapple recorded as M5-approved design only; this GDD created |
 | **M5.0** | Grapple architecture + deterministic simulator + docs/smokes; gameplay behavior unchanged; live integration deferred |
 | **M5.1** | Live Grapple prototype: PlayerGrappleDriver, LatchModule teach sequence, rope placeholder, live/FPS smokes |
+| **M5.1.1** | Grapple safety: path-swept collisions, boost cap, latch recycle abort, CI exit hardening |
 
 ---
 
-*Do not start M5.2 (chains/multipliers) until ChatGPT review of M5.1.*
+*Do not start M5.2 (chains/multipliers) until ChatGPT review of M5.1.1.*

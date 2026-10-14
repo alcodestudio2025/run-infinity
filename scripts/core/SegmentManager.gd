@@ -67,6 +67,23 @@ func reset_all() -> void:
 	_spawn_counter = 0
 
 
+## Pooled segments are removed from the tree; free them so SceneTree exit
+## does not leave orphan Node2D/CanvasItem RIDs (CI ERROR / exit noise).
+func _exit_tree() -> void:
+	_free_pooled_segments()
+
+
+func free_pooled_segments() -> void:
+	_free_pooled_segments()
+
+
+func _free_pooled_segments() -> void:
+	for segment: Segment in _pool:
+		if segment != null and is_instance_valid(segment):
+			segment.free()
+	_pool.clear()
+
+
 func _acquire_segment() -> Segment:
 	if _pool.is_empty():
 		return SEGMENT_SCENE.instantiate() as Segment

@@ -10,6 +10,8 @@ extends Node
 const RELEASE_SPEED_BOOST_DURATION_SEC: float = 0.35
 ## Scale of swing arc X applied to the player (1 = full rope X; keep small).
 const SWING_POSE_X_SCALE: float = 0.35
+## Max distance between collision samples while posing (px). Prevents Area2D tunneling.
+const SWING_COLLISION_STEP_PX: float = 12.0
 
 var _player: Player = null
 var _body: CharacterBody2D = null
@@ -121,6 +123,13 @@ func reset() -> void:
 	_hide_rope()
 
 
+## Test hook: apply a swing pose target with the same path-swept collision as live.
+func debug_move_swing_pose_to(target: Vector2) -> void:
+	if _body == null:
+		return
+	_move_along_swing_path(target)
+
+
 func _physics_process(delta: float) -> void:
 	if _player == null or _controller == null:
 		return
@@ -136,11 +145,15 @@ func _physics_process(delta: float) -> void:
 	_controller.process(delta)
 
 	if _pose_locked and _controller.get_phase() == GrappleState.Phase.ATTACHED:
+		if not _is_active_latch_valid():
+			_abort_invalid_latch()
+			return
 		_apply_swing_pose(
 			_simulator.get_player_position(),
 			_simulator.get_player_velocity(),
 		)
-		_update_rope_visual()
+		if _pose_locked and _player.is_alive():
+			_update_rope_visual()
 	elif _controller.get_phase() != GrappleState.Phase.ATTACHED:
 		_hide_rope()
 
@@ -200,30 +213,131 @@ func _on_game_over(_final_score: int, _distance: float) -> void:
 
 
 func _apply_swing_pose(sim_position: Vector2, _sim_velocity: Vector2) -> void:
-	if _body == null or _simulator == null:
+	if _body == null or _simulator == null or not _pose_locked:
 		return
+	if not _is_active_latch_valid():
+		_abort_invalid_latch()
+		return
+
+	var latch_pos: Variant = _try_live_latch_world()
+	if latch_pos == null:
+		_abort_invalid_latch()
+		return
+
 	## Rope offset from sim; latch world pos must be LIVE (WorldScroller moves modules).
 	var sim_latch: Vector2 = _simulator.get_anchor_position()
 	var rope_offset: Vector2 = sim_position - sim_latch
-	var latch_pos: Vector2 = _live_latch_world(sim_latch)
+	var live_latch: Vector2 = latch_pos as Vector2
 	## Y from live latch + rope. Latch Y is stable; X scrolls with the world.
-	_body.global_position.y = latch_pos.y + rope_offset.y
-	## Small relative X for arc feel — do NOT add world scroll as +X velocity.
-	var arc_dx: float = (rope_offset.x - _attach_rope_offset_x) * SWING_POSE_X_SCALE
-	_body.global_position.x = _attach_player_x + arc_dx
+	var target := Vector2(
+		_attach_player_x + (rope_offset.x - _attach_rope_offset_x) * SWING_POSE_X_SCALE,
+		live_latch.y + rope_offset.y,
+	)
+	_move_along_swing_path(target)
+
+
+func _move_along_swing_path(target: Vector2) -> void:
+	if _body == null or _player == null:
+		return
+	var from: Vector2 = _body.global_position
+	var distance: float = from.distance_to(target)
+	var steps: int = 1
+	if distance > SWING_COLLISION_STEP_PX:
+		steps = int(ceil(distance / SWING_COLLISION_STEP_PX))
+
+	for i: int in range(1, steps + 1):
+		var pos: Vector2 = from.lerp(target, float(i) / float(steps))
+		_body.global_position = pos
+		_body.velocity = Vector2.ZERO
+		if _resolve_obstacle_overlaps_at(pos):
+			return
+
+	_body.global_position = target
 	_body.velocity = Vector2.ZERO
+	_resolve_obstacle_overlaps_at(target)
 
 
-func _live_latch_world(fallback: Vector2) -> Vector2:
-	var active: LatchPoint = _controller.get_active_latch() if _controller != null else null
-	if active == null or active.source == null or not is_instance_valid(active.source):
-		return fallback
+func _resolve_obstacle_overlaps_at(world_pos: Vector2) -> bool:
+	if _body == null or _player == null or not _player.is_alive():
+		return not (_player != null and _player.is_alive())
+
+	var shape_node: CollisionShape2D = _body.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if shape_node == null or shape_node.shape == null:
+		return false
+
+	var space: PhysicsDirectSpaceState2D = _body.get_world_2d().direct_space_state
+	if space == null:
+		return false
+
+	var params := PhysicsShapeQueryParameters2D.new()
+	params.shape = shape_node.shape
+	params.transform = Transform2D(_body.global_rotation, world_pos) * shape_node.transform
+	params.collision_mask = Layers.to_mask(Layers.OBSTACLE)
+	params.collide_with_areas = true
+	params.collide_with_bodies = false
+	params.exclude = [_body.get_rid()]
+
+	var hits: Array[Dictionary] = space.intersect_shape(params, 16)
+	for hit: Dictionary in hits:
+		var collider: Variant = hit.get("collider")
+		if collider == null or not (collider is Area2D):
+			continue
+		var area: Area2D = collider as Area2D
+		var module: Node = area.get_parent()
+		if module != null and module.has_method("resolve_body_overlap"):
+			module.call("resolve_body_overlap", _body)
+		if not _player.is_alive():
+			reset()
+			return true
+	return false
+
+
+func _is_active_latch_valid() -> bool:
+	if _controller == null:
+		return false
+	var active: LatchPoint = _controller.get_active_latch()
+	if active == null:
+		return false
 	var src: Object = active.source
+	if src == null or not is_instance_valid(src):
+		return false
+	if src.has_method("is_latch_valid"):
+		return bool(src.call("is_latch_valid"))
+	if src is Node:
+		return (src as Node).is_inside_tree()
+	return true
+
+
+## Live latch world position, or null when the source is gone / recycled.
+## Never keeps a stale sim anchor as a permanent fallback.
+func _try_live_latch_world() -> Variant:
+	var active: LatchPoint = _controller.get_active_latch() if _controller != null else null
+	if active == null:
+		return null
+	var src: Object = active.source
+	if src == null or not is_instance_valid(src):
+		return null
+	if src.has_method("is_latch_valid") and not bool(src.call("is_latch_valid")):
+		return null
 	if src.has_method("get_latch_global_position"):
 		return src.call("get_latch_global_position") as Vector2
 	if src is Node2D:
+		if not (src as Node2D).is_inside_tree():
+			return null
 		return (src as Node2D).global_position
-	return fallback
+	return null
+
+
+func _abort_invalid_latch() -> void:
+	## Controlled terminate: drop Grapple without applying a release speed boost.
+	_pose_locked = false
+	_hide_rope()
+	if _controller != null:
+		_controller.reset()
+	if _body != null:
+		_body.velocity = Vector2.ZERO
+	if _player != null and _player.is_alive():
+		_player.set_state(PlayerState.State.FALLING)
 
 
 func _apply_release_impulse(impulse: Vector2) -> void:
@@ -268,9 +382,12 @@ func _ensure_rope_line() -> void:
 func _update_rope_visual() -> void:
 	if _rope_line == null or _simulator == null or not _pose_locked or _player == null:
 		return
-	var latch_world: Vector2 = _live_latch_world(_simulator.get_anchor_position())
+	var latch_world: Variant = _try_live_latch_world()
+	if latch_world == null:
+		_hide_rope()
+		return
 	_rope_line.clear_points()
-	_rope_line.add_point(_player.to_local(latch_world))
+	_rope_line.add_point(_player.to_local(latch_world as Vector2))
 	_rope_line.add_point(Vector2.ZERO)
 	_rope_line.visible = true
 
