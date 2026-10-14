@@ -1,22 +1,23 @@
-# Grapple Design — M5.0 Architecture
+# Grapple Design — M5.0 Architecture & Simulation
 
-Standalone ability component for Run Infinity. **Not wired** into `Main` / `GameScene` / `PlayerMovement` in this milestone.
+Standalone Grapple package for Run Infinity. **Not wired** into `Main` / `GameScene` / `PlayerMovement` / `TouchGestureRouter` in this milestone.
 
 **Package:** `res://scripts/grapple/`  
-**Owners:** Agent A (controller / latch / FSM), Agent B (deterministic `GrappleSimulator` motion math)
+**Engine:** Godot 4.7.2 · **Milestone:** M5.0
 
 ---
 
 ## 1. Goals
 
-1. Air-ability **request** API independent of jump/slide classification.
-2. Latch search ahead + above the player; reject behind / out of range.
-3. Clear FSM: `IDLE → SEEKING → ATTACHED → RELEASED → IDLE`.
-4. Attach → oscillation (via simulator) → **auto-release** (no indefinite hang).
-5. `reset()` on death / restart.
-6. Usable from headless tests without attaching to the player scene.
+1. First ground tap → jump (existing). Second airborne tap → **air-ability request** (Grapple).
+2. Automatic latch search ahead + above; reject behind / out of range / absent.
+3. Fast attach → brief automatic oscillation → **mandatory auto-release** with forward launch.
+4. No manual aim; no indefinite hang.
+5. Miss → normal jump trajectory continues.
+6. Future: chain latches + multipliers (not in M5.0).
+7. Deterministic headless simulation for design validation.
 
-Non-goals (M5.0): rope IK/Verlet art, combo multipliers, generic ability plugin registry, live Main wiring, touch router changes.
+Non-goals (M5.0): live player integration, rope IK art, combo multipliers, generic ability framework, ads/IAP/backend.
 
 ---
 
@@ -24,13 +25,15 @@ Non-goals (M5.0): rope IK/Verlet art, combo multipliers, generic ability plugin 
 
 | Layer | Role | Lives in |
 |-------|------|----------|
-| Input intents | Tap/swipe → jump / slide / **air ability** | Future host (`TouchGestureRouter` or façade) — **not modified here** |
-| GrappleController | Policy FSM, seek, attach, auto-release, reset | `scripts/grapple/GrappleController.gd` |
-| LatchProvider / LatchSelector | Candidate supply + filter/rank | `LatchProvider.gd`, `ArrayLatchProvider.gd`, `LatchSelector.gd` |
-| GrappleSimulator | Deterministic swing step/query | Interface `GrappleSimulator.gd`; stub `NullGrappleSimulator.gd` |
-| Player locomotion | Apply pose/impulse while grappling | Future — keep `PlayerMovement` free of Grapple internals |
+| Input intents | Jump / slide / **air ability** | Future host — **not modified in M5.0** |
+| `GrappleController` | Policy FSM, seek, attach, auto-release, reset | `GrappleController.gd` |
+| Latch supply / select | Candidates + filter/rank | `LatchProvider`, `ArrayLatchProvider`, `LatchSelector`, `LatchPoint` |
+| Motion contract | Swing step/query interface | `GrappleSimulator.gd` |
+| Deterministic sim | Fixed-dt arc + launch | `DeterministicGrappleSimulator.gd` + `GrappleSimConfig.gd` |
+| Null stub | Timer placeholder for FSM-only tests | `NullGrappleSimulator.gd` |
+| Player locomotion | Apply pose/impulse | **Future M5.1** — keep `PlayerMovement` free of Grapple internals |
 
-`PlayerState` may later mirror `SWINGING` / `LAUNCHED` for animation; Grapple **phase** stays in `GrappleState.Phase`.
+`PlayerState` already has unused `SWING_*` / `LAUNCHED` foreshadowing; Grapple **phase** stays in `GrappleState.Phase`.
 
 ---
 
@@ -51,93 +54,145 @@ RELEASED
 Any → reset() → IDLE
 ```
 
-Hard caps (`GrappleConfig.MAX_ATTACH_DURATION_SEC`) guarantee no hang even if the simulator never signals release.
+Hard caps (`GrappleConfig.MAX_ATTACH_DURATION_SEC`) guarantee no hang even if the simulator misbehaves.
 
 ---
 
-## 4. Public API surface
+## 4. Latch selection criteria
+
+### Controller / world (`LatchSelector` + `GrappleConfig`)
+
+| Rule | Default |
+|------|---------|
+| Ahead (+X) | `LATCH_MIN_AHEAD` 24 … `LATCH_MAX_AHEAD` 420 |
+| Above (−Y) | up to `LATCH_MAX_ABOVE` 360 |
+| Max below | `LATCH_MAX_BELOW` 40 |
+| Max range | `LATCH_MAX_RANGE` 480 |
+| Rank | Closest with slight height bias |
+
+### Standalone sim (`GrappleLatchQuery` + `GrappleSimConfig`)
+
+| Rule | Default |
+|------|---------|
+| Radius | min 48 … max 280 |
+| Require ahead / above | true |
+| Rank | Nearest valid |
+
+Behind / far / below → miss (jump continues).
+
+---
+
+## 5. Oscillation & release model
+
+**Deterministic kinematic arc** (not Verlet rope):
+
+1. On attach: rope length = distance player→latch; record start angle.
+2. Over `swing_duration` (default **0.45s**, band 0.35–0.55): angle lerps by `swing_arc_radians` (default 1.75) with **smoothstep** easing.
+3. Runner model (standalone): latches scroll −X at `scroll_speed` (320) so screen-X stays fixed.
+4. Controller mode: world scroll owned by host; anchor held fixed during swing.
+5. At duration end: **auto-release once** → tangential velocity + boost (`+420` x, `−120` y) → free flight with gravity.
+6. No further input required to leave the latch.
+
+---
+
+## 6. Balancing parameters (configurable, not final)
+
+### Policy (`GrappleConfig`)
+
+| Param | Value | Role |
+|-------|-------|------|
+| `SEEK_TIMEOUT_SEC` | 0.08 | Fail seek quickly |
+| `MIN_ATTACH_DURATION_SEC` | 0.18 | Readability floor |
+| `MAX_ATTACH_DURATION_SEC` | 0.85 | Hard hang cap |
+| `RELEASE_SETTLE_SEC` | 0.05 | RELEASED → IDLE |
+| `DEFAULT_RELEASE_IMPULSE` | (180, −220) | Fallback impulse |
+
+### Simulation (`GrappleSimConfig`)
+
+| Param | Value | Role |
+|-------|-------|------|
+| `FIXED_DT` | 1/60 | Determinism |
+| `swing_duration` | 0.45 | Oscillation window |
+| `swing_arc_radians` | 1.75 | Arc size |
+| `release_forward_boost` | 420 | Forward launch |
+| `release_upward_boost` | 120 | Up launch |
+| `scroll_speed` | 320 | Runner scroll model |
+| `gravity` / `max_fall_speed` | 1350 / 1400 | Post-release |
+
+---
+
+## 7. Public API
 
 ### GrappleController
 
 ```gdscript
-signal air_ability_requested
-signal state_changed(from_phase: int, to_phase: int)
-signal seek_failed
-signal attached(latch: LatchPoint)
-signal released(impulse: Vector2)
-signal swing_pose_updated(position: Vector2, velocity: Vector2)
-
 func request_air_ability() -> bool
 func can_request_air_ability() -> bool
-func update_host(snapshot: GrappleHostSnapshot) -> void
 func update_host_values(position, velocity, is_airborne, is_alive) -> void
 func process(delta: float) -> void
-func force_attach(latch: LatchPoint) -> bool
-func release_now() -> void
 func reset() -> void
 func set_simulator(simulator: GrappleSimulator) -> void
 func set_latch_provider(provider: LatchProvider) -> void
-func get_phase() -> int  # GrappleState.Phase
+# signals: air_ability_requested, attached, released(impulse), seek_failed, swing_pose_updated
 ```
 
-### GrappleSimulator (Agent B contract)
+### GrappleSimulator contract
 
 ```gdscript
 func begin_swing(anchor, player_position, initial_velocity, params: GrappleSwingParams) -> void
 func step(delta: float) -> void
-func get_player_position() -> Vector2
-func get_player_velocity() -> Vector2
-func get_anchor_position() -> Vector2
-func get_rope_angle() -> float
-func get_rope_length() -> float
-func get_elapsed_sec() -> float
-func is_active() -> bool
+func get_player_position() / get_player_velocity() / …
 func should_auto_release() -> bool
 func compute_release_impulse() -> Vector2
 func reset() -> void
 ```
 
-Implement under the same path or as a subclass (e.g. `DeterministicGrappleSimulator` extending `GrappleSimulator`). Controller default is `NullGrappleSimulator` (timer-based placeholder only).
+### DeterministicGrappleSimulator (also standalone)
 
-### LatchSelector
-
-- `is_valid_candidate(player_pos, latch)` — ahead (`LATCH_MIN_AHEAD`…`MAX_AHEAD`), height band, max range.
-- `select_best(player_pos, candidates)` — closest with slight height bias.
-- `filter_valid(...)`.
-
-World latches should use group `Tags.ANCHOR` when modules land later; M5.0 does not spawn them.
+```gdscript
+func try_attach() -> bool
+func set_player_state(pos, vel)
+func set_latches(positions)
+func step() / step_n(n)
+func sample() -> Dictionary
+func reset_after_death(spawn_pos)
+```
 
 ---
 
-## 5. Integration sketch (later milestone)
+## 8. Integration sketch (M5.1 — not this PR)
 
 ```
-TouchGestureRouter  --air_action_requested-->  (host)
-PlayerMovement / thin façade
+TouchGestureRouter  --air_action_requested-->  host
         │
         ├─ update_host_values(...)
         ├─ request_air_ability()   # airborne second tap
         ├─ process(delta)
-        ├─ on swing_pose_updated → set player position/velocity
-        └─ on released(impulse) → apply impulse, resume fall
-Death / GameScene restart → grapple.reset()
+        ├─ on swing_pose_updated → apply pose
+        └─ on released(impulse) → apply impulse
+Death / restart → grapple.reset()
 ```
 
-Do **not** overload `jump_requested` if an explicit air-ability signal can be added. Do **not** put latch physics in the router.
+Do **not** overload `jump_requested` if an explicit air-ability signal can be added.
 
 ---
 
-## 6. Test entry
+## 9. Tests
 
-`scripts/ci/m5_0_grapple_arch_smoke.gd` — headless FSM + selector checks, no Main scene.
+| Smoke | Covers |
+|-------|--------|
+| `m5_0_grapple_arch_smoke.gd` | FSM, guards, seek fail, reset, reject behind |
+| `m5_0_grapple_sim_smoke.gd` | Attach/miss, duration, auto-release launch, death reset, determinism |
 
 ```bash
-godot --headless --path . -s res://scripts/ci/m5_0_grapple_arch_smoke.gd
+source scripts/ci/smoke_env.sh && ri_smoke_env_setup
+godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_0_grapple_arch_smoke.gd
+godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m5_0_grapple_sim_smoke.gd
 ```
 
 ---
 
-## 7. File map
+## 10. File map
 
 | File | Purpose |
 |------|---------|
@@ -145,11 +200,9 @@ godot --headless --path . -s res://scripts/ci/m5_0_grapple_arch_smoke.gd
 | `GrappleState.gd` | `Phase` enum |
 | `GrappleConfig.gd` | Search / duration constants |
 | `GrappleHostSnapshot.gd` | Per-frame host pose |
-| `GrappleSwingParams.gd` | Oscillation params for simulator |
-| `LatchPoint.gd` | Candidate data |
-| `LatchProvider.gd` / `ArrayLatchProvider.gd` | Candidate supply |
-| `LatchSelector.gd` | Filter + rank |
-| `GrappleSimulator.gd` | Motion interface (Agent B) |
+| `GrappleSwingParams.gd` | Params for `begin_swing` |
+| `LatchPoint.gd` / `LatchProvider.gd` / `ArrayLatchProvider.gd` / `LatchSelector.gd` | Latch pipeline |
+| `GrappleSimulator.gd` | Motion interface |
 | `NullGrappleSimulator.gd` | Placeholder integrator |
-
-Legacy placeholders `scripts/systems/SwingComponent.gd` / `SwingComboManager.gd` remain unused; Grapple does not depend on them.
+| `DeterministicGrappleSimulator.gd` | Real fixed-dt sim |
+| `GrappleSimConfig.gd` / `GrappleLatchQuery.gd` | Sim tuning + latch helpers |
