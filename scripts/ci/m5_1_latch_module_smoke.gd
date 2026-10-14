@@ -90,6 +90,13 @@ func _run() -> void:
 		quit(1)
 		return
 
+	## Explicitly free pooled segments before quit (SegmentManager._exit_tree also does this).
+	if spawner != null:
+		var seg_mgr: Node = game_scene.get_node_or_null("SegmentManager")
+		if seg_mgr != null and seg_mgr.has_method("free_pooled_segments"):
+			seg_mgr.call("free_pooled_segments")
+	await _wait_frames(1)
+
 	print("%s: PASS" % LABEL)
 	quit(0)
 
