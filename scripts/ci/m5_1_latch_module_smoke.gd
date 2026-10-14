@@ -17,7 +17,7 @@ const STATE_PLAYING: int = 2
 const LABEL := "M5.1 latch-module smoke"
 ## Mirror GameConfig.LATCH_SEGMENT_INDICES / Tags.ANCHOR
 const ANCHOR_GROUP := "anchor"
-const EARLY_LATCH_INDICES := [4, 8, 11]
+const EARLY_LATCH_INDICES := [4, 5, 8, 10, 11, 14]
 const LATCH_SCENE_PATH := "res://scenes/modules/LatchModule.tscn"
 
 

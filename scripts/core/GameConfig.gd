@@ -83,12 +83,18 @@ const OVERHEAD_OBSTACLE_COLOR: Color = Color(0.55, 0.15, 0.55, 1.0)
 ## Double curb spacing inside one segment (local x ratios).
 const DOUBLE_CURB_LOCAL_X_RATIOS: Array[float] = [-0.28, 0.28]
 
-## Coin collectible (high enough to grab with a normal jump arc).
+## Coin collectible — multiple readable lanes (ground / jump / Grapple arc).
 const COIN_SIZE: Vector2 = Vector2(36.0, 36.0)
 const COIN_LOCAL_Y: float = -130.0
 const COIN_COLOR: Color = Color(0.95, 0.78, 0.15, 1.0)
 const COIN_SCORE_VALUE: int = 250
 const COIN_LOCAL_X_RATIOS: Array[float] = [-0.32, 0.05, 0.38]
+## Lane Y relative to segment center (reachable: stand / jump / swing).
+const COIN_LANE_GROUND_Y: float = -56.0
+const COIN_LANE_JUMP_Y: float = -130.0
+const COIN_LANE_GRAPPLE_Y: float = -210.0
+## How many coins in a teach sequence on consecutive gap slots.
+const COIN_SEQUENCE_LENGTH: int = 3
 
 ## Grapple latch (non-hazard): cyan diamond + amber ring, above jump-apex zone.
 ## Local Y is relative to segment center (ground_y + ground_height/2).
@@ -99,11 +105,10 @@ const LATCH_LOCAL_Y: float = -220.0
 const LATCH_COLOR: Color = Color(0.12, 0.88, 0.92, 1.0)
 const LATCH_RING_COLOR: Color = Color(1.0, 0.72, 0.18, 1.0)
 const LATCH_POINT_RADIUS: float = 14.0
-## Early controlled sequence (non-hazard at base stride 3): after SAFE_START,
-## first latch on 4 so it sits ~1 segment past the first curb teach beat.
-## Indices 4,8,11 never land on %stride==0 at base stride; smokes rely on this.
-const LATCH_SEGMENT_INDICES: Array[int] = [4, 8, 11]
-## After the early list, keep spawning on stride+LATCH_GAP_OFFSET gaps.
+## Early controlled sequence: denser teach beat after SAFE_START.
+## Prefer non-hazard slots at base stride 3 (avoid %3==0) so first curb stays on 3.
+const LATCH_SEGMENT_INDICES: Array[int] = [4, 5, 8, 10, 11, 14]
+## After the early list, spawn on stride gaps at this offset (≠ coin slot 1).
 const LATCH_GAP_OFFSET: int = 2
 ## When true, early LATCH_SEGMENT_INDICES always spawn (ignore unlock gate).
 const FORCE_LATCH_SEQUENCE: bool = true
@@ -122,9 +127,27 @@ static func get_overhead_obstacle_local_position(segment_length: float) -> Vecto
 
 
 static func get_coin_local_position(segment_length: float, slot_index: int = 0) -> Vector2:
+	return get_coin_local_position_for_lane(segment_length, slot_index, COIN_LANE_JUMP_Y)
+
+
+static func get_coin_lane_y(lane_index: int) -> float:
+	match lane_index % 3:
+		0:
+			return COIN_LANE_GROUND_Y
+		1:
+			return COIN_LANE_JUMP_Y
+		_:
+			return COIN_LANE_GRAPPLE_Y
+
+
+static func get_coin_local_position_for_lane(
+	segment_length: float,
+	slot_index: int,
+	lane_y: float,
+) -> Vector2:
 	var ratios: Array[float] = COIN_LOCAL_X_RATIOS
 	var ratio: float = ratios[slot_index % ratios.size()]
-	return Vector2(segment_length * ratio, COIN_LOCAL_Y)
+	return Vector2(segment_length * ratio, lane_y)
 
 
 static func get_latch_local_position(segment_length: float) -> Vector2:
@@ -237,12 +260,18 @@ const DIFFICULTY_FACTOR_PER_LEVEL: float = 0.10
 ## Hazard segment stride shrinks with level (3 → 2 → 1).
 const HAZARD_STRIDE_BASE: int = 3
 const HAZARD_STRIDE_MIN: int = 1
-const TALL_OBSTACLE_UNLOCK_LEVEL: int = 2
-const OVERHEAD_OBSTACLE_UNLOCK_LEVEL: int = 4
-const DOUBLE_CURB_UNLOCK_LEVEL: int = 6
-const COIN_SPAWN_START_LEVEL: int = 1
+## Levels per stride shrink step (DifficultyDirector).
+const HAZARD_STRIDE_SHRINK_LEVELS: int = 2
+const TALL_OBSTACLE_UNLOCK_LEVEL: int = 1
+const OVERHEAD_OBSTACLE_UNLOCK_LEVEL: int = 1
+const DOUBLE_CURB_UNLOCK_LEVEL: int = 4
+const COIN_SPAWN_START_LEVEL: int = 0
 ## Latches teach Grapple early; level 0 so the controlled sequence is reachable.
 const LATCH_UNLOCK_LEVEL: int = 0
+const HAZARD_PATTERN_MOD: int = 10
+const OVERHEAD_PATTERN_ROLLS: Array[int] = [1, 3, 6, 8]
+const TALL_PATTERN_ROLLS: Array[int] = [2, 5, 9]
+const DOUBLE_PATTERN_ROLL: int = 7
 
 # -- Scoring -------------------------------------------------------------------
 

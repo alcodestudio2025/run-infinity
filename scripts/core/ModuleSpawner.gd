@@ -71,9 +71,9 @@ func populate_segment(segment: Segment, segment_index: int) -> void:
 		_attach_hazard(segment, module_root, segment_index)
 		return
 
-	## Coins only on gap segments — never stacked on the same slice as a hazard.
+	## Coins only on gap segments — never stacked on the same slice as a hazard/latch.
 	if _can_coins() and _is_coin_gap_slot(segment_index, stride):
-		_attach_coin(segment, module_root, segment_index % 3)
+		_attach_coin_sequence(segment, module_root, segment_index)
 
 
 func _get_hazard_stride() -> int:
@@ -105,7 +105,7 @@ func _should_attach_latch(segment_index: int, stride: int) -> bool:
 	if GameConfig.is_early_latch_segment(segment_index):
 		return true
 
-	## Continuing pattern after the teach list: stride + LATCH_GAP_OFFSET gaps.
+	## Continuing pattern after the teach list: every 2×stride at LATCH_GAP_OFFSET.
 	## Never stack with a hazard slot (avoids mid-swing overhead kills).
 	if stride <= 0 or segment_index % stride == 0:
 		return false
@@ -114,7 +114,8 @@ func _should_attach_latch(segment_index: int, stride: int) -> bool:
 	]
 	if segment_index <= last_early:
 		return false
-	return segment_index % stride == GameConfig.LATCH_GAP_OFFSET
+	var period: int = stride * 2
+	return segment_index % period == GameConfig.LATCH_GAP_OFFSET
 
 
 func _is_coin_gap_slot(segment_index: int, stride: int) -> bool:
@@ -148,26 +149,27 @@ func _pick_hazard_pattern(segment_index: int) -> HazardPattern:
 		level = _difficulty.current_level
 
 	## Early run stays readable: only low curbs until the player learns the jump.
+	## After EARLY_LOW_CURB, allow overhead/tall so SLIDE/JUMP variety appears soon.
 	if segment_index <= GameConfig.EARLY_LOW_CURB_SEGMENT_MAX:
 		return HazardPattern.LOW_CURB
 
-	var roll: int = segment_index % 10
+	var roll: int = segment_index % GameConfig.HAZARD_PATTERN_MOD
 	if (
 		_difficulty != null
 		and _difficulty.can_spawn_double_curb()
-		and roll == 7
+		and roll == GameConfig.DOUBLE_PATTERN_ROLL
 	):
 		return HazardPattern.DOUBLE_CURB
 	if (
 		_difficulty != null
 		and _difficulty.can_spawn_overhead()
-		and roll in [3, 8]
+		and roll in GameConfig.OVERHEAD_PATTERN_ROLLS
 	):
 		return HazardPattern.OVERHEAD
 	if (
 		_difficulty != null
 		and _difficulty.can_spawn_tall()
-		and roll in [2, 5, 9]
+		and roll in GameConfig.TALL_PATTERN_ROLLS
 	):
 		return HazardPattern.TALL_CURB
 
@@ -250,15 +252,36 @@ func _attach_latch(segment: Segment, module_root: Node2D) -> void:
 	module.activate()
 
 
-func _attach_coin(segment: Segment, module_root: Node2D, slot_index: int) -> void:
+func _attach_coin_sequence(segment: Segment, module_root: Node2D, segment_index: int) -> void:
+	## One primary coin per gap segment; lane rotates so runs show ground/jump/grapple arcs.
+	## Sequence feel: consecutive gaps use consecutive lanes / x slots.
+	var lane: int = segment_index % 3
+	var slot: int = segment_index % GameConfig.COIN_LOCAL_X_RATIOS.size()
+	_attach_coin_at_lane(segment, module_root, slot, lane)
+
+	## Occasional second coin on the same segment (jump+ground pair) — never on overhead.
+	if segment_index % 5 == 0:
+		var alt_lane: int = (lane + 1) % 3
+		var alt_slot: int = (slot + 1) % GameConfig.COIN_LOCAL_X_RATIOS.size()
+		_attach_coin_at_lane(segment, module_root, alt_slot, alt_lane)
+
+
+func _attach_coin_at_lane(
+	segment: Segment,
+	module_root: Node2D,
+	slot_index: int,
+	lane_index: int,
+) -> void:
 	var module: CoinModule = COIN_SCENE.instantiate() as CoinModule
 	if module == null:
 		push_error("ModuleSpawner: failed to instantiate CoinModule.")
 		return
 
-	var local_position: Vector2 = GameConfig.get_coin_local_position(
+	var lane_y: float = GameConfig.get_coin_lane_y(lane_index)
+	var local_position: Vector2 = GameConfig.get_coin_local_position_for_lane(
 		segment.get_length(),
 		slot_index,
+		lane_y,
 	)
 	module_root.add_child(module)
 	module.setup({
@@ -266,3 +289,26 @@ func _attach_coin(segment: Segment, module_root: Node2D, slot_index: int) -> voi
 		"value": GameConfig.COIN_SCORE_VALUE,
 	})
 	module.activate()
+
+
+## Smoke helper: classify what populate_segment would attach (no scene required).
+func debug_classify_segment(segment_index: int, stride: int = -1) -> StringName:
+	if segment_index < GameConfig.SAFE_START_SEGMENT_COUNT:
+		return &"safe"
+	var use_stride: int = stride if stride > 0 else _get_hazard_stride()
+	if _should_attach_latch(segment_index, use_stride):
+		return &"latch"
+	if segment_index % use_stride == 0:
+		var pattern: HazardPattern = _pick_hazard_pattern(segment_index)
+		match pattern:
+			HazardPattern.OVERHEAD:
+				return &"overhead"
+			HazardPattern.TALL_CURB:
+				return &"tall"
+			HazardPattern.DOUBLE_CURB:
+				return &"double"
+			_:
+				return &"low"
+	if _can_coins() and _is_coin_gap_slot(segment_index, use_stride):
+		return &"coin"
+	return &"empty"
