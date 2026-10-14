@@ -12,7 +12,8 @@ const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
 const Boot := preload("res://scripts/ci/smoke_boot_helpers.gd")
 
 const WARMUP_FRAMES: int = 90
-const POST_START_FRAMES: int = 60
+## After title start_game: need enough run frames so pre-death distance > post-restart window.
+const POST_START_FRAMES: int = 90
 const POST_RESTART_FRAMES: int = 60
 ## Must match GameStateManager.GameState
 const STATE_PLAYING: int = 2
