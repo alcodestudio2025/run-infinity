@@ -2,10 +2,14 @@ name: Android Debug APK
 
 on:
   push:
-    branches: ["cursor/m4-android-apk-f957"]
+    branches:
+      - "cursor/m4-android-apk-f957"
+      - "cursor/m4-1-mobile-input-f957"
   pull_request:
-    ## Stacked M4 PR base is the M3.4 tip branch.
-    branches: ["cursor/m3-4-android-touch-f957"]
+    ## Stacked APK PRs: M4 on M3.4 tip; M4.1 on M4 tip.
+    branches:
+      - "cursor/m3-4-android-touch-f957"
+      - "cursor/m4-android-apk-f957"
   workflow_dispatch:
 
 ## Separate from headless smokes (godot-ci.yml). Produces a debug APK artifact only.
