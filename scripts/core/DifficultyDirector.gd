@@ -31,8 +31,9 @@ func update_difficulty(new_distance: float) -> void:
 
 
 func get_hazard_stride() -> int:
-	## Level 0–2: every 3rd segment; 3–5: every 2nd; 6+: every segment.
-	var shrink: int = current_level / 3
+	## Shrinks every HAZARD_STRIDE_SHRINK_LEVELS (default 2): 3 → 2 → 1.
+	var step: int = maxi(GameConfig.HAZARD_STRIDE_SHRINK_LEVELS, 1)
+	var shrink: int = current_level / step
 	return maxi(
 		GameConfig.HAZARD_STRIDE_MIN,
 		GameConfig.HAZARD_STRIDE_BASE - shrink,
