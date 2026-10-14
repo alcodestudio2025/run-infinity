@@ -119,6 +119,7 @@ func restart_run() -> void:
 	_world_scroller.reset()
 
 	if _player != null:
+		## respawn → PlayerMovement.reset_to_standing → PlayerGrappleDriver.reset()
 		_player.respawn(_get_spawn_position())
 
 	if _hud != null:

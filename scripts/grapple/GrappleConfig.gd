@@ -2,7 +2,9 @@ class_name GrappleConfig
 extends RefCounted
 
 ## Tuning for Grapple search, attach, and auto-release.
-## Motion math (oscillation) lives in GrappleSimulator — Agent B owns that.
+## Live LatchSelector uses THESE constants as the search source of truth.
+## GrappleSimConfig / GrappleLatchQuery are standalone-sim mirrors — coordinator
+## / Agent B should align them to this file when changing radii.
 
 # -- Latch search (world units, Y-down) ----------------------------------------
 
