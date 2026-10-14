@@ -19,12 +19,10 @@ func _ready() -> void:
 
 
 func start_game() -> void:
-	if GameStateManager.current_state == GameStateManager.GameState.PLAYING:
+	## Only valid from the title menu. Ignore PLAYING / GAME_OVER / other states
+	## so stray calls cannot hide the title or re-enter begin_run mid-flow.
+	if GameStateManager.current_state != GameStateManager.GameState.MAIN_MENU:
 		return
-
-	var from_title: bool = (
-		GameStateManager.current_state == GameStateManager.GameState.MAIN_MENU
-	)
 
 	if _title_screen != null:
 		_title_screen.set_visible_menu(false)
@@ -33,9 +31,7 @@ func start_game() -> void:
 		_game_scene.call("begin_run")
 
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
-
-	if from_title:
-		EventBus.game_started.emit()
+	EventBus.game_started.emit()
 
 
 func is_title_visible() -> bool:

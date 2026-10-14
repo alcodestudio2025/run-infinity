@@ -8,11 +8,12 @@ extends SceneTree
 ## Autoload singletons are resolved by node path (not global identifiers) so this
 ## script compiles when launched with -s.
 ##
-## Contract APIs (MA-004 / M3.3):
-##   Main: start_game(), is_title_visible()
+## Contract APIs (MA-004 / M3.3 + M3.3.1):
+##   Main: start_game() only from MAIN_MENU; is_title_visible()
 ##   GameScene: begin_run(), is_run_active(), restart_run()
 ##   TitleScreen: get_displayed_best_score()
 ##   States: MAIN_MENU=1, PLAYING=2, GAME_OVER=4
+##   Negative: start_game during PLAYING / GAME_OVER is a no-op.
 
 const Guard := preload("res://scripts/ci/smoke_userdata_guard.gd")
 
@@ -204,11 +205,41 @@ func _run() -> void:
 
 	print("%s: case3 PASS (PLAYING title hidden distance=%0.3f)" % [LABEL, dist3])
 
-	# --- Case 4: kill player → GAME_OVER; high_score coherent (>= seed) ---
+	# --- Case 4: start_game() while PLAYING must be a no-op ---
+	var dist_before_playing_guard: float = float(velocity.get("distance_travelled"))
+	var title_before_playing_guard: bool = bool(main.call("is_title_visible"))
+	main.call("start_game")
+	await _wait_frames(POST_KILL_FRAMES)
+
+	if int(gsm.get("current_state")) != STATE_PLAYING:
+		push_error(
+			"%s: case4 start_game during PLAYING changed state to %d."
+			% [LABEL, int(gsm.get("current_state"))]
+		)
+		quit(1)
+		return
+	if bool(main.call("is_title_visible")) != title_before_playing_guard:
+		push_error("%s: case4 start_game during PLAYING toggled title visibility." % LABEL)
+		quit(1)
+		return
+	var dist_after_playing_guard: float = float(velocity.get("distance_travelled"))
+	if dist_after_playing_guard + DISTANCE_EPS < dist_before_playing_guard:
+		push_error(
+			"%s: case4 start_game during PLAYING reset distance (%0.3f → %0.3f)."
+			% [LABEL, dist_before_playing_guard, dist_after_playing_guard]
+		)
+		quit(1)
+		return
+	print(
+		"%s: case4 PASS (start_game ignored while PLAYING distance=%0.3f→%0.3f)"
+		% [LABEL, dist_before_playing_guard, dist_after_playing_guard]
+	)
+
+	# --- Case 5: kill player → GAME_OVER; high_score coherent (>= seed) ---
 	var high_before_kill: int = int(save_manager.get("data").get("high_score"))
 	var player: Node = _find_player(game_scene)
 	if player == null:
-		push_error("%s: case4 Player not found." % LABEL)
+		push_error("%s: case5 Player not found." % LABEL)
 		quit(1)
 		return
 
@@ -217,7 +248,7 @@ func _run() -> void:
 
 	if int(gsm.get("current_state")) != STATE_GAME_OVER:
 		push_error(
-			"%s: case4 expected GAME_OVER after kill, got %d."
+			"%s: case5 expected GAME_OVER after kill, got %d."
 			% [LABEL, int(gsm.get("current_state"))]
 		)
 		quit(1)
@@ -226,32 +257,66 @@ func _run() -> void:
 	var high_after_kill: int = int(save_manager.get("data").get("high_score"))
 	if high_after_kill < SEEDED_BEST:
 		push_error(
-			"%s: case4 high_score dropped below seed (%d < %d)."
+			"%s: case5 high_score dropped below seed (%d < %d)."
 			% [LABEL, high_after_kill, SEEDED_BEST]
 		)
 		quit(1)
 		return
 	if high_after_kill < high_before_kill:
 		push_error(
-			"%s: case4 high_score dropped after kill (%d < %d)."
+			"%s: case5 high_score dropped after kill (%d < %d)."
 			% [LABEL, high_after_kill, high_before_kill]
 		)
 		quit(1)
 		return
 
 	print(
-		"%s: case4 PASS (GAME_OVER high_score=%d seed=%d)"
+		"%s: case5 PASS (GAME_OVER high_score=%d seed=%d)"
 		% [LABEL, high_after_kill, SEEDED_BEST]
 	)
 
-	# --- Case 5: restart_run() → PLAYING; high_score not wiped ---
+	# --- Case 6: start_game() while GAME_OVER must be a no-op (no begin_run / no PLAYING) ---
+	var dist_at_game_over: float = float(velocity.get("distance_travelled"))
+	var title_at_game_over: bool = bool(main.call("is_title_visible"))
+	var high_at_game_over: int = high_after_kill
+	main.call("start_game")
+	await _wait_frames(POST_KILL_FRAMES)
+
+	if int(gsm.get("current_state")) != STATE_GAME_OVER:
+		push_error(
+			"%s: case6 start_game during GAME_OVER changed state to %d."
+			% [LABEL, int(gsm.get("current_state"))]
+		)
+		quit(1)
+		return
+	if bool(main.call("is_title_visible")) != title_at_game_over:
+		push_error("%s: case6 start_game during GAME_OVER toggled title visibility." % LABEL)
+		quit(1)
+		return
+	if absf(float(velocity.get("distance_travelled")) - dist_at_game_over) > DISTANCE_EPS:
+		push_error(
+			"%s: case6 start_game during GAME_OVER moved distance (%0.3f → %0.3f)."
+			% [LABEL, dist_at_game_over, float(velocity.get("distance_travelled"))]
+		)
+		quit(1)
+		return
+	if int(save_manager.get("data").get("high_score")) != high_at_game_over:
+		push_error("%s: case6 start_game during GAME_OVER changed high_score." % LABEL)
+		quit(1)
+		return
+	print(
+		"%s: case6 PASS (start_game ignored while GAME_OVER state=%d distance=%0.3f)"
+		% [LABEL, STATE_GAME_OVER, dist_at_game_over]
+	)
+
+	# --- Case 7: restart_run() → PLAYING; high_score not wiped ---
 	var high_before_restart: int = high_after_kill
 	game_scene.call("restart_run")
 	await _wait_frames(POST_RESTART_FRAMES)
 
 	if int(gsm.get("current_state")) != STATE_PLAYING:
 		push_error(
-			"%s: case5 expected PLAYING after restart_run(), got %d."
+			"%s: case7 expected PLAYING after restart_run(), got %d."
 			% [LABEL, int(gsm.get("current_state"))]
 		)
 		quit(1)
@@ -260,7 +325,7 @@ func _run() -> void:
 	var high_after_restart: int = int(save_manager.get("data").get("high_score"))
 	if high_after_restart != high_before_restart:
 		push_error(
-			"%s: case5 high_score wiped/changed on restart (%d vs %d)."
+			"%s: case7 high_score wiped/changed on restart (%d vs %d)."
 			% [LABEL, high_after_restart, high_before_restart]
 		)
 		quit(1)
@@ -268,19 +333,19 @@ func _run() -> void:
 
 	# Restart must not force a return to title.
 	if bool(main.call("is_title_visible")):
-		push_error("%s: case5 title reappeared after restart_run()." % LABEL)
+		push_error("%s: case7 title reappeared after restart_run()." % LABEL)
 		quit(1)
 		return
 
-	var dist5: float = float(velocity.get("distance_travelled"))
-	if dist5 <= DISTANCE_EPS:
-		push_error("%s: case5 distance=%0.3f did not advance after restart." % [LABEL, dist5])
+	var dist7: float = float(velocity.get("distance_travelled"))
+	if dist7 <= DISTANCE_EPS:
+		push_error("%s: case7 distance=%0.3f did not advance after restart." % [LABEL, dist7])
 		quit(1)
 		return
 
 	print(
-		"%s: case5 PASS (PLAYING after restart high_score=%d distance=%0.3f)"
-		% [LABEL, high_after_restart, dist5]
+		"%s: case7 PASS (PLAYING after restart high_score=%d distance=%0.3f)"
+		% [LABEL, high_after_restart, dist7]
 	)
 
 	print("M3.3 title smoke PASS")
