@@ -1,0 +1,75 @@
+{
+  "verdict": "NO_GO_QUALITY_PARTS",
+  "reason": "Approved sheet and live frames are full-body poses, not authored limb plates. Auto band-cuts leave occlusion holes and soft seams; live 64x96 yields ~15px limb segments.",
+  "option_a_locked": true,
+  "experimental_frame00_canonical": false,
+  "m6_1_d_png_production": "SUSPENDED",
+  "source_body_px": [
+    284,
+    460
+  ],
+  "auto_parts": [
+    {
+      "part": "head",
+      "size": [
+        284,
+        128
+      ],
+      "opaque_pct": 69.41
+    },
+    {
+      "part": "torso",
+      "size": [
+        284,
+        152
+      ],
+      "opaque_pct": 85.81
+    },
+    {
+      "part": "thigh",
+      "size": [
+        284,
+        110
+      ],
+      "opaque_pct": 83.32
+    },
+    {
+      "part": "shin",
+      "size": [
+        284,
+        147
+      ],
+      "opaque_pct": 68.19
+    },
+    {
+      "part": "arm_guess",
+      "size": [
+        284,
+        138
+      ],
+      "opaque_pct": 88.56
+    }
+  ],
+  "live_approx_limb_band_px": 15,
+  "authored_required_parts_present": false,
+  "min_quality_bar": {
+    "authoring_part_min_edge_px": 64,
+    "required_parts": [
+      "head",
+      "torso",
+      "upper_arm_l",
+      "upper_arm_r",
+      "forearm_l",
+      "forearm_r",
+      "thigh_l",
+      "thigh_r",
+      "shin_l",
+      "shin_r",
+      "shoe_l",
+      "shoe_r"
+    ],
+    "must_reconstruct_occlusions": true,
+    "no_rect_placeholders": true
+  },
+  "next_asset_ask": "Dedicated Kai cutout part plate matching Option A costume (raglan yellow/black, maroon leggings), front+side turnaround, painted overlaps."
+}

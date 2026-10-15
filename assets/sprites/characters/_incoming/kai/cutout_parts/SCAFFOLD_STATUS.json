@@ -1,0 +1,111 @@
+{
+  "verdict": "NO_GO_QUALITY_PARTS",
+  "parts_dir": "assets/sprites/characters/_incoming/kai/cutout_parts",
+  "missing": [
+    "head",
+    "torso",
+    "upper_arm_l",
+    "upper_arm_r",
+    "forearm_l",
+    "forearm_r",
+    "thigh_l",
+    "thigh_r",
+    "shin_l",
+    "shin_r",
+    "shoe_l",
+    "shoe_r"
+  ],
+  "parts": [
+    {
+      "part": "head",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "torso",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "upper_arm_l",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "upper_arm_r",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "forearm_l",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "forearm_r",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "thigh_l",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "thigh_r",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "shin_l",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "shin_r",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "shoe_l",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    },
+    {
+      "part": "shoe_r",
+      "ok": false,
+      "issues": [
+        "missing_file"
+      ]
+    }
+  ],
+  "notes": [
+    "docs/previews/m6-1-f/auto_cut_parts are feasibility evidence only \u2014 not valid POC textures."
+  ],
+  "scene_emitted": false,
+  "option_a_locked": true,
+  "experimental_frame00_canonical": false,
+  "feasibility_verdict": "NO_GO_QUALITY_PARTS"
+}

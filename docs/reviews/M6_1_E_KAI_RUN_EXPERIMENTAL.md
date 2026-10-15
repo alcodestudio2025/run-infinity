@@ -5,6 +5,7 @@
 | Base | PR #23 @ `a754d99e576d606c0fcc7d3af9c72873b1e62513` |
 | Package | `Kai_RUN_Frame00_QA.zip` → `_experimental/kai/run_frame00/package/` |
 | Status | **EXPERIMENTAL PREVIEW ONLY** |
+| Canon (M6.1-F) | **Not canonical** — Option A = approved sheet |
 | Quality gate | **NOT PASSED** (`correction_complete` remains false) |
 | Gameplay Kai RUN | **Unchanged** (6-frame cycle preserved) |
 | Nova | **Untouched** |

@@ -1,9 +1,11 @@
 # M6.1-D — Exact asset list (authored PNGs)
 
+> **SUSPENDED (M6.1-F):** Do not produce Kai RUN 01–05 or the other rework PNGs below until Option A cutout part-plate feasibility clears. See [`M6_1_F_KAI_SKELETAL_POC.md`](M6_1_F_KAI_SKELETAL_POC.md). Checklist retained for when production resumes.
+
 Drop into `assets/sprites/characters/_incoming/...`.  
 After import, gameplay paths become `assets/sprites/characters/{id}/frames/{anim}_NN.png`.
 
-**Total: 30 RGBA PNGs.** Do not deliver duplicates or sheet crops presented as new art.
+**Total: 30 RGBA PNGs** (when production resumes). Do not deliver duplicates or sheet crops presented as new art.
 
 ## Naming in `_incoming`
 
