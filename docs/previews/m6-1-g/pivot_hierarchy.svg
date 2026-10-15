@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="640" viewBox="0 0 920 640" role="img" aria-label="Kai Skeleton2D pivot hierarchy">
+  <title>Kai Option A  Bone2D hierarchy &amp; pivots (M6.1-G)</title>
+  <defs>
+    <style>
+      .bg { fill: #1a1f24; }
+      .panel { fill: #243038; stroke: #3d4f5c; stroke-width: 2; }
+      .title { fill: #f2f5f7; font: 700 22px "Segoe UI", system-ui, sans-serif; }
+      .sub { fill: #9db0bd; font: 400 13px "Segoe UI", system-ui, sans-serif; }
+      .node { fill: #2f8f6b; stroke: #7dffc0; stroke-width: 2; }
+      .nodeRoot { fill: #c9a227; stroke: #ffe08a; stroke-width: 2; }
+      .nodeHead { fill: #3a6ea5; stroke: #9ec5ff; stroke-width: 2; }
+      .label { fill: #f2f5f7; font: 600 12px "Segoe UI", system-ui, sans-serif; }
+      .edge { stroke: #7a8f9c; stroke-width: 2; fill: none; }
+      .note { fill: #c5d2da; font: 400 12px "Segoe UI", system-ui, sans-serif; }
+      .badge { fill: #5c2a2a; stroke: #e08888; stroke-width: 1.5; }
+      .badgeT { fill: #ffd0d0; font: 600 12px "Segoe UI", system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect class="bg" width="920" height="640"/>
+  <rect class="panel" x="24" y="24" width="872" height="72" rx="8"/>
+  <text class="title" x="44" y="58">Kai  Skeleton2D hierarchy (Option A)</text>
+  <text class="sub" x="44" y="80">M6.1-G pivot schema · facing right · RUN POC minimum · no placeholder limbs</text>
+
+  <rect class="badge" x="680" y="40" width="196" height="40" rx="6"/>
+  <text class="badgeT" x="698" y="65">BLOCKED ON ART PNGs</text>
+
+  <!-- edges -->
+  <path class="edge" d="M460 160 L460 210"/>
+  <path class="edge" d="M460 260 L460 310"/>
+  <path class="edge" d="M460 260 L300 310"/>
+  <path class="edge" d="M460 260 L620 310"/>
+  <path class="edge" d="M300 360 L220 410"/>
+  <path class="edge" d="M620 360 L700 410"/>
+  <path class="edge" d="M460 160 L300 410"/>
+  <path class="edge" d="M460 160 L620 410"/>
+  <path class="edge" d="M300 460 L300 510"/>
+  <path class="edge" d="M620 460 L620 510"/>
+  <path class="edge" d="M300 560 L300 600"/>
+  <path class="edge" d="M620 560 L620 600"/>
+  <path class="edge" d="M220 460 L140 510"/>
+  <path class="edge" d="M700 460 L780 510"/>
+
+  <!-- nodes -->
+  <circle class="nodeRoot" cx="460" cy="150" r="28"/>
+  <text class="label" x="460" y="154" text-anchor="middle">hips</text>
+
+  <circle class="node" cx="460" cy="250" r="26"/>
+  <text class="label" x="460" y="254" text-anchor="middle">torso</text>
+
+  <circle class="nodeHead" cx="460" cy="350" r="24"/>
+  <text class="label" x="460" y="354" text-anchor="middle">head</text>
+
+  <circle class="node" cx="300" cy="350" r="24"/>
+  <text class="label" x="300" y="354" text-anchor="middle">u_arm_L</text>
+  <circle class="node" cx="220" cy="450" r="22"/>
+  <text class="label" x="220" y="454" text-anchor="middle">fore_L</text>
+  <circle class="node" cx="140" cy="550" r="20"/>
+  <text class="label" x="140" y="554" text-anchor="middle">glove*</text>
+
+  <circle class="node" cx="620" cy="350" r="24"/>
+  <text class="label" x="620" y="354" text-anchor="middle">u_arm_R</text>
+  <circle class="node" cx="700" cy="450" r="22"/>
+  <text class="label" x="700" y="454" text-anchor="middle">fore_R</text>
+  <circle class="node" cx="780" cy="550" r="20"/>
+  <text class="label" x="780" y="554" text-anchor="middle">glove*</text>
+
+  <circle class="node" cx="300" cy="450" r="24"/>
+  <text class="label" x="300" y="454" text-anchor="middle">thigh_L</text>
+  <circle class="node" cx="300" cy="550" r="22"/>
+  <text class="label" x="300" y="554" text-anchor="middle">shin_L</text>
+  <circle class="node" cx="300" cy="620" r="18"/>
+  <text class="label" x="300" y="624" text-anchor="middle">shoe_L</text>
+
+  <circle class="node" cx="620" cy="450" r="24"/>
+  <text class="label" x="620" y="454" text-anchor="middle">thigh_R</text>
+  <circle class="node" cx="620" cy="550" r="22"/>
+  <text class="label" x="620" y="554" text-anchor="middle">shin_R</text>
+  <circle class="node" cx="620" cy="620" r="18"/>
+  <text class="label" x="620" y="624" text-anchor="middle">shoe_R</text>
+
+  <text class="note" x="44" y="120">* glove fused into forearm_*.png for RUN POC (no separate hand plate required).</text>
+  <text class="note" x="44" y="138">Pivots: neck · shoulders · elbows · hips · knees · ankles  see PIVOT_SCHEMA.json</text>
+</svg>

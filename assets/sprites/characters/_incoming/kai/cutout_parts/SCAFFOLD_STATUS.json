@@ -107,5 +107,10 @@
   "scene_emitted": false,
   "option_a_locked": true,
   "experimental_frame00_canonical": false,
-  "feasibility_verdict": "NO_GO_QUALITY_PARTS"
+  "feasibility_verdict": "NO_GO_QUALITY_PARTS",
+  "m6_1_g": {
+    "status": "SPEC_READY_BLOCKED_ON_ART",
+    "validate": "python3 scripts/tools/m6_1_g_part_plate_validate.py",
+    "review": "docs/reviews/M6_1_G_CHARACTER_PARTS.md"
+  }
 }
