@@ -1,0 +1,235 @@
+{
+  "milestone": "M6.1-D",
+  "spec_status": "PIPELINE_READY_ASSETS_PENDING",
+  "correction_complete": false,
+  "slots": [
+    {
+      "id": "kai",
+      "anim": "run",
+      "priority": "P0",
+      "required_count": 6,
+      "production_count": 6,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "foot_x_drift 35.6 > 8.0"
+      ],
+      "metrics": {
+        "foot_x_drift": 35.6,
+        "height_span_pct": 17.1,
+        "unique_hashes": 6,
+        "frames": [
+          {
+            "file": "run_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              22,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 72,
+            "opaque_pct": 35.99,
+            "black_matte_pct": 0.52,
+            "fringe_pct": 5.57,
+            "foot_x": 25.3,
+            "touch_edges": [],
+            "sharp": 62.3,
+            "sha256": "24750f7efdb717afa4a407a2770329923514c61d5e0bf589828c5489261a895c"
+          },
+          {
+            "file": "run_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              21,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 73,
+            "opaque_pct": 35.63,
+            "black_matte_pct": 0.2,
+            "fringe_pct": 5.73,
+            "foot_x": 27.4,
+            "touch_edges": [],
+            "sharp": 63.49,
+            "sha256": "7487f54ac2a4249645c02a1a3756fa59ce6d08f84ce75b87cdb5beba026b4a8f"
+          },
+          {
+            "file": "run_02.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              22,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 72,
+            "opaque_pct": 33.33,
+            "black_matte_pct": 0.39,
+            "fringe_pct": 6.09,
+            "foot_x": 41.9,
+            "touch_edges": [],
+            "sharp": 64.53,
+            "sha256": "a285566c427a140a1bac14850df977a039f7c88c036d378652df58b761905bbc"
+          },
+          {
+            "file": "run_03.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              31,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 63,
+            "opaque_pct": 28.12,
+            "black_matte_pct": 0.26,
+            "fringe_pct": 4.75,
+            "foot_x": 41.9,
+            "touch_edges": [],
+            "sharp": 65.53,
+            "sha256": "70f80ccd04d9c9d4e4c2af57edc62627c534b200747ceed343309a3a9a253676"
+          },
+          {
+            "file": "run_04.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              18,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 76,
+            "opaque_pct": 34.94,
+            "black_matte_pct": 0.46,
+            "fringe_pct": 5.65,
+            "foot_x": 6.7,
+            "touch_edges": [],
+            "sharp": 61.05,
+            "sha256": "8586b461300a2aa4c467a159d69c429a8a4c9da1f144666184c0938481c7e03d"
+          },
+          {
+            "file": "run_05.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              23,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 71,
+            "opaque_pct": 31.56,
+            "black_matte_pct": 0.36,
+            "fringe_pct": 5.4,
+            "foot_x": 6.3,
+            "touch_edges": [],
+            "sharp": 60.89,
+            "sha256": "312d1ee3edd6b52e683aeefa2307068e1e7702e491f07f9713962e70abf5b02f"
+          }
+        ]
+      }
+    },
+    {
+      "id": "kai",
+      "anim": "grapple",
+      "priority": "P0",
+      "required_count": 6,
+      "production_count": 2,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "production frame count 2 != required 6"
+      ],
+      "metrics": null
+    },
+    {
+      "id": "nova",
+      "anim": "grapple",
+      "priority": "P0",
+      "required_count": 6,
+      "production_count": 2,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "production frame count 2 != required 6"
+      ],
+      "metrics": null
+    },
+    {
+      "id": "nova",
+      "anim": "slide",
+      "priority": "P1",
+      "required_count": 4,
+      "production_count": 3,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "production frame count 3 != required 4"
+      ],
+      "metrics": null
+    },
+    {
+      "id": "nova",
+      "anim": "land",
+      "priority": "P1",
+      "required_count": 4,
+      "production_count": 3,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "production frame count 3 != required 4"
+      ],
+      "metrics": null
+    },
+    {
+      "id": "nova",
+      "anim": "fall",
+      "priority": "P1",
+      "required_count": 4,
+      "production_count": 3,
+      "incoming_count": 0,
+      "verdict": "PENDING",
+      "reasons": [
+        "no incoming authored PNGs",
+        "production frame count 3 != required 4"
+      ],
+      "metrics": null
+    }
+  ],
+  "summary": {
+    "pass": 0,
+    "fail": 0,
+    "pending": 6,
+    "total": 6
+  }
+}
