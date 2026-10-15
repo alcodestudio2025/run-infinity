@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Capture REAL Godot viewport PNGs for M6.1 visual preview (proxy art only).
+## Capture REAL Godot viewport PNGs for M6.1-B (Kai/Nova SpriteFrames).
 ## Requires a working display (do NOT pass --headless).
 ##
 ##   DISPLAY=:1 godot --path . --fixed-fps 60 -s res://scripts/ci/m6_1_visual_preview_capture.gd
@@ -98,6 +98,11 @@ func _run() -> void:
 	var movement: Node = player.get_node_or_null("PlayerMovement") if player != null else null
 	var visual: Node = player.get_node_or_null("CharacterVisual") if player != null else null
 
+	if visual == null or not bool(visual.call("is_using_sprite_frames")):
+		push_error("%s: Kai must use SpriteFrames (proxy forbidden)." % LABEL)
+		quit(1)
+		return
+
 	await _capture_jump_pose(out_dir, "06-gameplay-kai-jump.png", player, movement)
 	await _capture_slide_pose(out_dir, "07-gameplay-kai-slide.png", player, movement)
 	await _try_capture_grapple(out_dir, "08-gameplay-kai-grapple.png", player, movement, visual)
@@ -127,6 +132,11 @@ func _run() -> void:
 	movement = player.get_node_or_null("PlayerMovement") if player != null else null
 	visual = player.get_node_or_null("CharacterVisual") if player != null else null
 
+	if visual == null or not bool(visual.call("is_using_sprite_frames")):
+		push_error("%s: Nova must use SpriteFrames (proxy forbidden)." % LABEL)
+		quit(1)
+		return
+
 	await _capture_jump_pose(out_dir, "10-gameplay-nova-jump.png", player, movement)
 	await _capture_slide_pose(out_dir, "11-gameplay-nova-slide.png", player, movement)
 	await _try_capture_grapple(out_dir, "12-gameplay-nova-grapple.png", player, movement, visual)
@@ -135,9 +145,9 @@ func _run() -> void:
 	var manifest := FileAccess.open("%s/README.md" % out_dir, FileAccess.WRITE)
 	if manifest != null:
 		manifest.store_string(
-			"# M6.1 visual previews (real Godot viewports)\n\n"
-			+ "Captured from commit gameplay UI — **proxy silhouettes**, not final Kai/Nova sprites.\n"
-			+ "Approved concept sheet: `docs/media/m6-character-ref-kai-nova.jpg`.\n"
+			"# M6.1-B visual previews (real Godot viewports)\n\n"
+			+ "Captured from live gameplay — **Kai / Nova SpriteFrames** (proxies hidden).\n"
+			+ "Source sheet: `assets/sprites/characters/_source/kai_nova_sheet_approved.png`.\n"
 			+ "Re-run: `DISPLAY=:1 godot --path . --fixed-fps 60 -s res://scripts/ci/m6_1_visual_preview_capture.gd`\n"
 		)
 		manifest.close()
@@ -216,16 +226,15 @@ func _try_capture_grapple(
 		await _capture(out_dir, filename)
 		print("%s: wrote %s (live grapple / SWINGING)" % [LABEL, filename])
 		return
-	## No latch in view — capture explicit grapple anim on proxy (still real viewport).
+	## No latch in view — still capture real SpriteFrames grapple pose.
 	if visual != null and visual.has_method("play"):
 		visual.call("play", "grapple")
 		await _wait_frames(4)
 		await _force_draw()
-		var pose_name: String = filename.replace(".png", "-pose-proxy.png")
-		await _capture(out_dir, pose_name)
+		await _capture(out_dir, filename)
 		print(
-			"%s: wrote %s (grapple anim pose; no latch attach this frame)"
-			% [LABEL, pose_name]
+			"%s: wrote %s (grapple SpriteFrames pose; no latch attach this frame)"
+			% [LABEL, filename]
 		)
 
 

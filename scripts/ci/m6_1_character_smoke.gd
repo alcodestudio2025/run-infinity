@@ -168,6 +168,10 @@ func _run() -> void:
 		)
 		quit(1)
 		return
+	if not bool(visual.call("is_using_sprite_frames")):
+		push_error("%s: expected real SpriteFrames for nova (proxy still active)." % LABEL)
+		quit(1)
+		return
 
 	## Collision must remain standing defaults (aesthetic must not alter hitbox).
 	var collision: CollisionShape2D = player.get_node_or_null("CollisionShape2D") as CollisionShape2D
@@ -246,7 +250,11 @@ func _run() -> void:
 		push_error("%s: apply_saved_character failed for kai." % LABEL)
 		quit(1)
 		return
-	print("%s: case6 PASS (kai swap)" % LABEL)
+	if not bool(visual.call("is_using_sprite_frames")):
+		push_error("%s: expected real SpriteFrames for kai (proxy still active)." % LABEL)
+		quit(1)
+		return
+	print("%s: case6 PASS (kai swap + sprite frames)" % LABEL)
 
 	print("M6.1 character smoke PASS")
 	quit(0)

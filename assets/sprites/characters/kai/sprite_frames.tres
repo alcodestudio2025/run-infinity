@@ -1,0 +1,149 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/fall_00.png" id="1_ev6t2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/fall_01.png" id="2_yqgvn"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/fall_02.png" id="3_nhdmr"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/grapple_00.png" id="4_71lld"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/grapple_01.png" id="5_10v6o"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/hit_00.png" id="6_6r6el"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/hit_01.png" id="7_ks0ag"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/idle_00.png" id="8_u8lcc"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/idle_01.png" id="9_m2ork"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/idle_02.png" id="10_jbndk"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/idle_03.png" id="11_w4jws"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/jump_00.png" id="12_ktjcp"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/jump_01.png" id="13_prwkw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/jump_02.png" id="14_padtd"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/land_00.png" id="15_5wrv2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/land_01.png" id="16_no0c3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/land_02.png" id="17_60y5a"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_00.png" id="18_p43fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_01.png" id="19_hnedk"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_02.png" id="20_jy4bv"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_03.png" id="21_7nrqa"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_04.png" id="22_qegnk"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/run_05.png" id="23_fj5jf"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/slide_00.png" id="24_8xeer"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/slide_01.png" id="25_00uil"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/kai/frames/slide_02.png" id="26_6xyoi"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ev6t2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_yqgvn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_nhdmr")
+}],
+"loop": 1,
+"name": &"fall",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_71lld")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_10v6o")
+}],
+"loop": 1,
+"name": &"grapple",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_6r6el")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_ks0ag")
+}],
+"loop": 0,
+"name": &"hit",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_u8lcc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_m2ork")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_jbndk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_w4jws")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_ktjcp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_prwkw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_padtd")
+}],
+"loop": 0,
+"name": &"jump",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("15_5wrv2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_no0c3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_60y5a")
+}],
+"loop": 0,
+"name": &"land",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("18_p43fx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_hnedk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_jy4bv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_7nrqa")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_qegnk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_fj5jf")
+}],
+"loop": 1,
+"name": &"run",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("24_8xeer")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_00uil")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_6xyoi")
+}],
+"loop": 1,
+"name": &"slide",
+"speed": 8.0
+}]
