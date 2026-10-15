@@ -20,6 +20,8 @@ Gameplay collision stays on `Player/CollisionShape2D` and never reads sprite bou
 
 **M6.1-D:** Rework anims (Kai `run`/`grapple`; Nova `grapple`/`slide`/`land`/`fall`) must be replaced with **independent authored PNGs** via `_incoming/`. Sheet extraction is frozen for those slots. See `docs/reviews/M6_1_D_ANIM_REWORK.md`.
 
+**M6.1-F:** Kai canon = **Option A** (approved sheet: yellow/black raglan, maroon leggings). Experimental Frame 00 is not canonical. M6.1-D PNG production is **SUSPENDED** until a quality Option A cutout part plate clears skeletal feasibility (`docs/reviews/M6_1_F_KAI_SKELETAL_POC.md`). Do not fake Skeleton2D parts from band-cuts or rectangles.
+
 ## Stable IDs
 
 | ID | Display | Tagline |

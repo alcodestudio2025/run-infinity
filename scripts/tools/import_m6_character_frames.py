@@ -168,6 +168,8 @@ def main() -> int:
 	canvas = list(spec["canvas_game"])
 	accepted = list(spec["source_resolution_accepted"])
 	slots = spec["rework"]
+	milestone_status = str(spec.get("status") or "")
+	suspended = milestone_status.startswith("SUSPENDED")
 	if args.only:
 		wanted = set(args.only)
 		slots = [s for s in slots if f"{s['id']}/{s['anim']}" in wanted]
@@ -186,9 +188,20 @@ def main() -> int:
 			)
 		print(
 			f"Ready {sum(1 for s in statuses if s['ready'])}/{len(statuses)}; "
-			f"milestone={spec.get('status')}"
+			f"milestone={milestone_status}"
 		)
+		if suspended:
+			reason = (spec.get("suspension") or {}).get("reason") or "production suspended"
+			print(f"SUSPENDED: {reason}")
 		return 0
+
+	if suspended:
+		reason = (spec.get("suspension") or {}).get("reason") or milestone_status
+		print(
+			f"REFUSED: M6.1-D import suspended ({milestone_status}).\n  {reason}",
+			file=sys.stderr,
+		)
+		return 3
 
 	ready_slots = [s for s, st in zip(slots, statuses) if st["ready"]]
 	blocked = [st for st in statuses if not st["ready"]]

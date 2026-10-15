@@ -8,9 +8,12 @@
 | Spec (machine) | `assets/sprites/characters/_incoming/REWORK_SPEC.json` |
 | Asset checklist | [`M6_1_D_ASSET_LIST.md`](M6_1_D_ASSET_LIST.md) |
 | Engine | Godot **4.7.2** |
-| Status | **PIPELINE READY — ASSETS PENDING** (hardened M6.1-D.1) |
+| Status | **SUSPENDED** — PNG production paused by M6.1-F (Option A lock + part-plate first) |
+| Canon | **Option A** — approved sheet (`M6_1_E2_KAI_CANON_SHEET.md`, `M6_1_F_KAI_SKELETAL_POC.md`) |
 
 **Hard stop:** correction is **not** complete until authored PNGs land, import runs, quality gate exits `0`, and OpenGL re-record passes. This milestone does **not** replace sprites and does **not** start M6.2.
+
+**M6.1-F suspension:** do **not** author Kai RUN 01–05 or other M6.1-D rework PNGs until a dedicated Option A cutout part plate exists and skeletal feasibility can clear `NO_GO_QUALITY_PARTS`. Pipeline tooling stays; production drops are frozen.
 
 ### M6.1-D.1 pipeline hardening
 

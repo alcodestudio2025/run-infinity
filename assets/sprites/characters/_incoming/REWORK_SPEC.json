@@ -1,6 +1,13 @@
 {
   "milestone": "M6.1-D.1",
-  "status": "PIPELINE_READY_ASSETS_PENDING",
+  "status": "SUSPENDED_PENDING_OPTION_A_PART_PLATE",
+  "suspension": {
+    "by": "M6.1-F",
+    "reason": "Option A canon locked; skeletal part quality NO_GO on current full-body assets. Suspend RUN 01-05 and other rework PNG production until dedicated cutout part plate lands.",
+    "canon_option": "A",
+    "experimental_frame00_canonical": false,
+    "resume_when": "assets/sprites/characters/_incoming/kai/cutout_parts passes m6_1_f_skeletal_poc_scaffold.py"
+  },
   "canvas_game": [64, 96],
   "source_resolution_recommended": [128, 192],
   "source_resolution_accepted": [[64, 96], [128, 192], [256, 384]],

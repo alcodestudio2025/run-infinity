@@ -1,0 +1,39 @@
+{
+  "milestone": "M6.1-F",
+  "canon_option": "A",
+  "experimental_frame00_canonical": false,
+  "description": "Dedicated Kai cutout part plate for Skeleton2D POC. Full-body sheets, live 64x96 crops, and auto band-cuts are not accepted.",
+  "costume_lock": {
+    "hair": "white spiked + dark headband",
+    "top": "yellow with black raglan panels/sleeves",
+    "bottom": "dark shorts over maroon leggings",
+    "shoes": "yellow/white athletic"
+  },
+  "required_parts": [
+    "head",
+    "torso",
+    "upper_arm_l",
+    "upper_arm_r",
+    "forearm_l",
+    "forearm_r",
+    "thigh_l",
+    "thigh_r",
+    "shin_l",
+    "shin_r",
+    "shoe_l",
+    "shoe_r"
+  ],
+  "file_pattern": "{part}.png",
+  "format": "RGBA PNG",
+  "min_edge_px": 64,
+  "min_opaque_pct": 8.0,
+  "must_reconstruct_occlusions": true,
+  "forbid_rect_placeholders": true,
+  "forbid_sources": [
+    "docs/previews/m6-1-f/auto_cut_parts",
+    "assets/sprites/characters/kai/frames",
+    "_experimental/kai/run_frame00"
+  ],
+  "preferred_authoring": "front + side (or front + 3/4) turnaround, limb edge >= 128 px",
+  "gate": "python3 scripts/tools/m6_1_f_skeletal_poc_scaffold.py"
+}
