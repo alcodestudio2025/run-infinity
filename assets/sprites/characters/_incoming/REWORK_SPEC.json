@@ -1,0 +1,131 @@
+{
+  "milestone": "M6.1-D.1",
+  "status": "PIPELINE_READY_ASSETS_PENDING",
+  "canvas_game": [64, 96],
+  "source_resolution_recommended": [128, 192],
+  "source_resolution_accepted": [[64, 96], [128, 192], [256, 384]],
+  "transform": {
+    "id": "whole_canvas_resize_lanczos_v1",
+    "preserve_transparent_margins": true,
+    "auto_trim": false,
+    "auto_center": false,
+    "per_frame_reposition": false
+  },
+  "pivot": {
+    "description": "Artist-authored canvas pivots are preserved by whole-canvas resize only. Godot still uses centered + offset=(0,-48).",
+    "animated_sprite_offset": [0, -48],
+    "centered": true
+  },
+  "similarity": {
+    "review_threshold": 0.92,
+    "fail_threshold": 0.985,
+    "note": "Fingerprint = 16x24 luma*alpha + alpha. REVIEW blocks PASS pending manual check."
+  },
+  "approved_ref": "res://docs/previews/m6-1/approved-character-ref.jpg",
+  "do_not_pad_with_duplicates": true,
+  "do_not_extract_from_sheet": true,
+  "keep_unchanged": {
+    "kai": ["idle", "jump", "fall", "land", "slide", "hit"],
+    "nova": ["idle", "run", "jump", "hit"]
+  },
+  "rework": [
+    {
+      "id": "kai",
+      "anim": "run",
+      "priority": "P0",
+      "frame_count": 6,
+      "fps": 10.0,
+      "loop": true,
+      "anchor": "ground_contact",
+      "max_anchor_x_drift_px": 8.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 20.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/kai/run",
+      "output_prefix": "assets/sprites/characters/kai/frames/run"
+    },
+    {
+      "id": "kai",
+      "anim": "grapple",
+      "priority": "P0",
+      "frame_count": 6,
+      "fps": 8.0,
+      "loop": true,
+      "anchor": "attachment",
+      "max_anchor_x_drift_px": 12.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 35.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/kai/grapple",
+      "output_prefix": "assets/sprites/characters/kai/frames/grapple",
+      "notes": "Swing cycle; attachment/rope zone stable; match approved GRAPPLE pose language"
+    },
+    {
+      "id": "nova",
+      "anim": "grapple",
+      "priority": "P0",
+      "frame_count": 6,
+      "fps": 8.0,
+      "loop": true,
+      "anchor": "attachment",
+      "max_anchor_x_drift_px": 12.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 35.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/nova/grapple",
+      "output_prefix": "assets/sprites/characters/nova/frames/grapple"
+    },
+    {
+      "id": "nova",
+      "anim": "slide",
+      "priority": "P1",
+      "frame_count": 4,
+      "fps": 8.0,
+      "loop": true,
+      "anchor": "ground_contact",
+      "max_anchor_x_drift_px": 8.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 30.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/nova/slide",
+      "output_prefix": "assets/sprites/characters/nova/frames/slide",
+      "notes": "Low silhouette; no ground-kiss; dust optional"
+    },
+    {
+      "id": "nova",
+      "anim": "land",
+      "priority": "P1",
+      "frame_count": 4,
+      "fps": 10.0,
+      "loop": false,
+      "anchor": "ground_contact",
+      "max_anchor_x_drift_px": 8.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 28.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/nova/land",
+      "output_prefix": "assets/sprites/characters/nova/frames/land"
+    },
+    {
+      "id": "nova",
+      "anim": "fall",
+      "priority": "P1",
+      "frame_count": 4,
+      "fps": 8.0,
+      "loop": true,
+      "anchor": "body_center",
+      "max_anchor_x_drift_px": 10.0,
+      "max_black_matte_pct": 2.0,
+      "max_fringe_pct": 8.0,
+      "min_sharp": 8.0,
+      "max_height_span_pct": 28.0,
+      "incoming_dir": "assets/sprites/characters/_incoming/nova/fall",
+      "output_prefix": "assets/sprites/characters/nova/frames/fall"
+    }
+  ]
+}
