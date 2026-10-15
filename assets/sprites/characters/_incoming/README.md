@@ -25,9 +25,10 @@ Also accepted: `run_00.png`, `frame_00.png` (sorted naturally).
 
 1. Exact frame count — **no** duplicates to pad.
 2. RGBA, real alpha (no matte plate).
-3. Source size: **128×192 preferred**; also 64×96 or 256×384.
-4. Facing **right**; feet near bottom; body readable at game canvas 64×96.
-5. Import tool places/scales onto 64×96 with feet bottom-center — do not invent inbetweens in tooling.
+3. Source size: **128×192 preferred**; also 64×96 or 256×384 (uniform per anim).
+4. Facing **right**. Author pivots on the full canvas — **transparent margins are preserved**.
+5. Import applies **whole-canvas resize only** to 64×96 (no auto-trim / auto-center / per-frame reposition).
+6. Do not invent inbetweens in tooling. Near-duplicates are caught by the similarity gate.
 
 ## Import
 

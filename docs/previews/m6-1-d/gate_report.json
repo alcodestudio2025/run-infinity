@@ -1,24 +1,143 @@
 {
-  "milestone": "M6.1-D",
+  "milestone": "M6.1-D.1",
   "spec_status": "PIPELINE_READY_ASSETS_PENDING",
+  "transform": "whole_canvas_resize_lanczos_v1",
   "correction_complete": false,
   "slots": [
     {
       "id": "kai",
       "anim": "run",
       "priority": "P0",
+      "anchor": "ground_contact",
       "required_count": 6,
       "production_count": 6,
       "incoming_count": 0,
       "verdict": "PENDING",
       "reasons": [
         "no incoming authored PNGs",
-        "foot_x_drift 35.6 > 8.0"
+        "anchor_x_drift(ground_contact) 35.7 > 8.0"
       ],
+      "manual_review": [],
       "metrics": {
-        "foot_x_drift": 35.6,
+        "anchor_kind": "ground_contact",
+        "anchor_x_drift": 35.7,
         "height_span_pct": 17.1,
         "unique_hashes": 6,
+        "similarity_pairs": [
+          {
+            "i": 0,
+            "j": 1,
+            "similarity": 0.9704
+          },
+          {
+            "i": 0,
+            "j": 2,
+            "similarity": 0.9515
+          },
+          {
+            "i": 0,
+            "j": 3,
+            "similarity": 0.8701
+          },
+          {
+            "i": 0,
+            "j": 4,
+            "similarity": 0.9098
+          },
+          {
+            "i": 0,
+            "j": 5,
+            "similarity": 0.9245
+          },
+          {
+            "i": 1,
+            "j": 2,
+            "similarity": 0.9517
+          },
+          {
+            "i": 1,
+            "j": 3,
+            "similarity": 0.8694
+          },
+          {
+            "i": 1,
+            "j": 4,
+            "similarity": 0.9049
+          },
+          {
+            "i": 1,
+            "j": 5,
+            "similarity": 0.9266
+          },
+          {
+            "i": 2,
+            "j": 3,
+            "similarity": 0.9005
+          },
+          {
+            "i": 2,
+            "j": 4,
+            "similarity": 0.8956
+          },
+          {
+            "i": 2,
+            "j": 5,
+            "similarity": 0.92
+          },
+          {
+            "i": 3,
+            "j": 4,
+            "similarity": 0.836
+          },
+          {
+            "i": 3,
+            "j": 5,
+            "similarity": 0.868
+          },
+          {
+            "i": 4,
+            "j": 5,
+            "similarity": 0.9318
+          }
+        ],
+        "similarity_fail": [],
+        "similarity_review": [
+          {
+            "i": 0,
+            "j": 1,
+            "similarity": 0.9704
+          },
+          {
+            "i": 0,
+            "j": 2,
+            "similarity": 0.9515
+          },
+          {
+            "i": 0,
+            "j": 5,
+            "similarity": 0.9245
+          },
+          {
+            "i": 1,
+            "j": 2,
+            "similarity": 0.9517
+          },
+          {
+            "i": 1,
+            "j": 5,
+            "similarity": 0.9266
+          },
+          {
+            "i": 2,
+            "j": 5,
+            "similarity": 0.92
+          },
+          {
+            "i": 4,
+            "j": 5,
+            "similarity": 0.9318
+          }
+        ],
         "frames": [
           {
             "file": "run_00.png",
@@ -37,7 +156,9 @@
             "opaque_pct": 35.99,
             "black_matte_pct": 0.52,
             "fringe_pct": 5.57,
-            "foot_x": 25.3,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 25.3,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 62.3,
             "sha256": "24750f7efdb717afa4a407a2770329923514c61d5e0bf589828c5489261a895c"
@@ -59,7 +180,9 @@
             "opaque_pct": 35.63,
             "black_matte_pct": 0.2,
             "fringe_pct": 5.73,
-            "foot_x": 27.4,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 27.4,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 63.49,
             "sha256": "7487f54ac2a4249645c02a1a3756fa59ce6d08f84ce75b87cdb5beba026b4a8f"
@@ -81,7 +204,9 @@
             "opaque_pct": 33.33,
             "black_matte_pct": 0.39,
             "fringe_pct": 6.09,
-            "foot_x": 41.9,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 41.9,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 64.53,
             "sha256": "a285566c427a140a1bac14850df977a039f7c88c036d378652df58b761905bbc"
@@ -103,7 +228,9 @@
             "opaque_pct": 28.12,
             "black_matte_pct": 0.26,
             "fringe_pct": 4.75,
-            "foot_x": 41.9,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 41.9,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 65.53,
             "sha256": "70f80ccd04d9c9d4e4c2af57edc62627c534b200747ceed343309a3a9a253676"
@@ -125,7 +252,9 @@
             "opaque_pct": 34.94,
             "black_matte_pct": 0.46,
             "fringe_pct": 5.65,
-            "foot_x": 6.7,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 6.7,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 61.05,
             "sha256": "8586b461300a2aa4c467a159d69c429a8a4c9da1f144666184c0938481c7e03d"
@@ -147,18 +276,22 @@
             "opaque_pct": 31.56,
             "black_matte_pct": 0.36,
             "fringe_pct": 5.4,
-            "foot_x": 6.3,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 6.3,
+            "anchor_y": 93.0,
             "touch_edges": [],
             "sharp": 60.89,
             "sha256": "312d1ee3edd6b52e683aeefa2307068e1e7702e491f07f9713962e70abf5b02f"
           }
         ]
-      }
+      },
+      "provenance_ok": false
     },
     {
       "id": "kai",
       "anim": "grapple",
       "priority": "P0",
+      "anchor": "attachment",
       "required_count": 6,
       "production_count": 2,
       "incoming_count": 0,
@@ -167,12 +300,68 @@
         "no incoming authored PNGs",
         "production frame count 2 != required 6"
       ],
-      "metrics": null
+      "manual_review": [],
+      "metrics": {
+        "anchor_kind": "attachment",
+        "anchor_x_drift": 9.0,
+        "frames": [
+          {
+            "file": "grapple_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              32,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 62,
+            "opaque_pct": 24.1,
+            "black_matte_pct": 0.24,
+            "fringe_pct": 5.63,
+            "anchor_kind": "attachment",
+            "anchor_x": 43.8,
+            "anchor_y": 42.1,
+            "touch_edges": [],
+            "sharp": 66.99,
+            "sha256": "1f6be0fcab2a8f425e3e89d00eede2d7aa93cf5cd9a31680519639b0f7ba3c05"
+          },
+          {
+            "file": "grapple_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              3,
+              2,
+              59,
+              93
+            ],
+            "bw": 57,
+            "bh": 92,
+            "opaque_pct": 38.57,
+            "black_matte_pct": 0.29,
+            "fringe_pct": 5.57,
+            "anchor_kind": "attachment",
+            "anchor_x": 34.8,
+            "anchor_y": 15.0,
+            "touch_edges": [],
+            "sharp": 58.45,
+            "sha256": "5b0211248ab5a9d2b5fa649e0433085967f0767da941ad59e2f5e1180cd153e0"
+          }
+        ]
+      },
+      "provenance_ok": false
     },
     {
       "id": "nova",
       "anim": "grapple",
       "priority": "P0",
+      "anchor": "attachment",
       "required_count": 6,
       "production_count": 2,
       "incoming_count": 0,
@@ -181,12 +370,68 @@
         "no incoming authored PNGs",
         "production frame count 2 != required 6"
       ],
-      "metrics": null
+      "manual_review": [],
+      "metrics": {
+        "anchor_kind": "attachment",
+        "anchor_x_drift": 7.1,
+        "frames": [
+          {
+            "file": "grapple_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              29,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 65,
+            "opaque_pct": 30.52,
+            "black_matte_pct": 0.02,
+            "fringe_pct": 5.24,
+            "anchor_kind": "attachment",
+            "anchor_x": 39.3,
+            "anchor_y": 39.5,
+            "touch_edges": [],
+            "sharp": 46.9,
+            "sha256": "9e188f58ac921d976b3d688f5a6c6d0c1677b182e64c9b804740dc8ebb6154ec"
+          },
+          {
+            "file": "grapple_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              4,
+              2,
+              59,
+              93
+            ],
+            "bw": 56,
+            "bh": 92,
+            "opaque_pct": 43.99,
+            "black_matte_pct": 0.13,
+            "fringe_pct": 5.0,
+            "anchor_kind": "attachment",
+            "anchor_x": 32.2,
+            "anchor_y": 15.1,
+            "touch_edges": [],
+            "sharp": 42.26,
+            "sha256": "485d029fdaaab49107fd6293900370f690fdb7d83c856519f1398d0401bedec0"
+          }
+        ]
+      },
+      "provenance_ok": false
     },
     {
       "id": "nova",
       "anim": "slide",
       "priority": "P1",
+      "anchor": "ground_contact",
       "required_count": 4,
       "production_count": 3,
       "incoming_count": 0,
@@ -195,12 +440,92 @@
         "no incoming authored PNGs",
         "production frame count 3 != required 4"
       ],
-      "metrics": null
+      "manual_review": [],
+      "metrics": {
+        "anchor_kind": "ground_contact",
+        "anchor_x_drift": 21.1,
+        "frames": [
+          {
+            "file": "slide_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              34,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 60,
+            "opaque_pct": 37.19,
+            "black_matte_pct": 0.02,
+            "fringe_pct": 4.92,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 52.8,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 44.96,
+            "sha256": "73ca48f83fa6ddb32592ca41ae26eeadb911b094ee6c47ba1f327b70e3f98c4c"
+          },
+          {
+            "file": "slide_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              52,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 42,
+            "opaque_pct": 26.06,
+            "black_matte_pct": 0.0,
+            "fringe_pct": 3.6,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 31.6,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 48.28,
+            "sha256": "1bbf258924b82188199fc89d88408308dc404f334483e555c5756cf3efbaf3cd"
+          },
+          {
+            "file": "slide_02.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              47,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 47,
+            "opaque_pct": 29.96,
+            "black_matte_pct": 0.03,
+            "fringe_pct": 4.22,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 33.5,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 46.42,
+            "sha256": "2556633412c9bd024d8c5a0592e858367173af7570244fb08342e2f40e83585b"
+          }
+        ]
+      },
+      "provenance_ok": false
     },
     {
       "id": "nova",
       "anim": "land",
       "priority": "P1",
+      "anchor": "ground_contact",
       "required_count": 4,
       "production_count": 3,
       "incoming_count": 0,
@@ -209,12 +534,92 @@
         "no incoming authored PNGs",
         "production frame count 3 != required 4"
       ],
-      "metrics": null
+      "manual_review": [],
+      "metrics": {
+        "anchor_kind": "ground_contact",
+        "anchor_x_drift": 19.7,
+        "frames": [
+          {
+            "file": "land_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              8,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 86,
+            "opaque_pct": 46.27,
+            "black_matte_pct": 0.02,
+            "fringe_pct": 5.37,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 31.9,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 38.98,
+            "sha256": "742db67739dbe749a736624184814c51cd8905325f12af9df0dea6074cf7edc3"
+          },
+          {
+            "file": "land_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              28,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 66,
+            "opaque_pct": 37.89,
+            "black_matte_pct": 0.02,
+            "fringe_pct": 4.83,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 45.1,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 42.53,
+            "sha256": "254c69941e42c66abc50003d092b54e9b25a510974ba25f35327cfb46732aae4"
+          },
+          {
+            "file": "land_02.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              27,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 67,
+            "opaque_pct": 44.04,
+            "black_matte_pct": 0.02,
+            "fringe_pct": 5.05,
+            "anchor_kind": "ground_contact",
+            "anchor_x": 25.4,
+            "anchor_y": 93.0,
+            "touch_edges": [],
+            "sharp": 39.25,
+            "sha256": "fd7073f54c5c677398833cfc6b97fc2840ae79787292226bbbab340618a40fed"
+          }
+        ]
+      },
+      "provenance_ok": false
     },
     {
       "id": "nova",
       "anim": "fall",
       "priority": "P1",
+      "anchor": "body_center",
       "required_count": 4,
       "production_count": 3,
       "incoming_count": 0,
@@ -223,13 +628,93 @@
         "no incoming authored PNGs",
         "production frame count 3 != required 4"
       ],
-      "metrics": null
+      "manual_review": [],
+      "metrics": {
+        "anchor_kind": "body_center",
+        "anchor_x_drift": 2.1,
+        "frames": [
+          {
+            "file": "fall_00.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              2,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 92,
+            "opaque_pct": 50.93,
+            "black_matte_pct": 0.03,
+            "fringe_pct": 6.05,
+            "anchor_kind": "body_center",
+            "anchor_x": 34.1,
+            "anchor_y": 39.8,
+            "touch_edges": [],
+            "sharp": 40.41,
+            "sha256": "4678773cae2f3691d71c0ce6f4e5109c6f4c3bd221c99ee7d0bdacf0c8142681"
+          },
+          {
+            "file": "fall_01.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              17,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 77,
+            "opaque_pct": 42.48,
+            "black_matte_pct": 0.0,
+            "fringe_pct": 4.79,
+            "anchor_kind": "body_center",
+            "anchor_x": 32.1,
+            "anchor_y": 49.0,
+            "touch_edges": [],
+            "sharp": 42.21,
+            "sha256": "cffff88034bef90bc05d88127af30524b747189f738ac7e37c97bf1b3e61b03b"
+          },
+          {
+            "file": "fall_02.png",
+            "size": [
+              64,
+              96
+            ],
+            "bbox": [
+              2,
+              33,
+              61,
+              93
+            ],
+            "bw": 60,
+            "bh": 61,
+            "opaque_pct": 34.62,
+            "black_matte_pct": 0.0,
+            "fringe_pct": 4.18,
+            "anchor_kind": "body_center",
+            "anchor_x": 32.1,
+            "anchor_y": 60.3,
+            "touch_edges": [],
+            "sharp": 41.99,
+            "sha256": "2e096aed28b816aabd6f4f7138f5354d43048b152b8c567a13d3161ac8b3f8bd"
+          }
+        ]
+      },
+      "provenance_ok": false
     }
   ],
   "summary": {
     "pass": 0,
     "fail": 0,
     "pending": 6,
+    "review": 0,
     "total": 6
   }
 }

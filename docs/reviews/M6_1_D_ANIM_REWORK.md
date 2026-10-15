@@ -8,9 +8,17 @@
 | Spec (machine) | `assets/sprites/characters/_incoming/REWORK_SPEC.json` |
 | Asset checklist | [`M6_1_D_ASSET_LIST.md`](M6_1_D_ASSET_LIST.md) |
 | Engine | Godot **4.7.2** |
-| Status | **PIPELINE READY — ASSETS PENDING** |
+| Status | **PIPELINE READY — ASSETS PENDING** (hardened M6.1-D.1) |
 
 **Hard stop:** correction is **not** complete until authored PNGs land, import runs, quality gate exits `0`, and OpenGL re-record passes. This milestone does **not** replace sprites and does **not** start M6.2.
+
+### M6.1-D.1 pipeline hardening
+
+- Import uses **whole-canvas resize only** (`whole_canvas_resize_lanczos_v1`) — no trim/center/reposition.
+- Per-anim **anchors**: `ground_contact` (run/slide/land), `attachment` (grapple), `body_center` (fall).
+- Import writes `assets/sprites/characters/{id}/import_provenance/{anim}.json` (source + output + expected hashes).
+- Gate verifies provenance transform, anchor drift, and visual near-duplicates (REVIEW/FAIL thresholds).
+- Synthetic self-test: `python3 scripts/tools/m6_1_d_pipeline_selftest.py` (temp only).
 
 ---
 
@@ -56,7 +64,7 @@ Nova `run` is Conditional in M6.1-C but acceptable for this rework wave. Kai `fa
 | Game canvas | **64×96** RGBA |
 | Authoring size | **128×192** preferred (also 64×96 or 256×384) |
 | Facing | Right |
-| Pivot | Feet on bottom band; plant centroid ≈ **x=32**; Godot `centered` + `offset=(0,-48)` |
+| Pivot | Artist-locked on source canvas; preserved by whole-canvas resize. Godot `centered` + `offset=(0,-48)` |
 | Style | Match approved models — Kai white spikes / yellow kit; Nova magenta ponytail / goggles / pink-teal |
 | Reference | `docs/previews/m6-1/approved-character-ref.jpg` (“Pose Principali”) |
 | Alpha | Real transparency; black-matte ≤ **2%**; no plate |
@@ -68,7 +76,7 @@ Nova `run` is Conditional in M6.1-C but acceptable for this rework wave. Kai `fa
 
 - **Silhouette:** Forward lean, athletic chibi runner; yellow jersey readable.
 - **Motion:** Full stride cycle (contact → pass → flight → opposite contact). Contact frames plant firmly; airborne frames clearly off ground.
-- **Pivot:** Foot-x drift ≤ **8 px** across all 6. No horizontal skating vs hitchbox.
+- **Pivot:** `ground_contact` anchor-x drift ≤ **8 px**. No horizontal skating vs hitchbox.
 - **Continuity:** Frame 5 must loop cleanly into frame 0; head size stable; no limb pops.
 - **Ref:** Approved CORSA pose + hero run energy.
 
@@ -76,7 +84,7 @@ Nova `run` is Conditional in M6.1-C but acceptable for this rework wave. Kai `fa
 
 - **Silhouette:** Hang / swing arc matching approved GRAPPLE icons; rope cue **readable** (not a 2 px stub).
 - **Motion:** Anticipation → peak hang → swing through → settle (loopable). Not a 2-pose blink.
-- **Pivot:** Body mass stable under attachment feel; foot-x drift ≤ **10 px** (airborne OK to float above ground line).
+- **Pivot:** `attachment` anchor-x drift ≤ **12 px** (airborne; not judged by foot plant).
 - **Height span:** ≤ 35% (pose change allowed).
 - **Continuity:** Rope direction coherent; hair/ponytail follow swing.
 - **Ref:** Approved GRAPPLE pose icons for each character.
@@ -85,21 +93,21 @@ Nova `run` is Conditional in M6.1-C but acceptable for this rework wave. Kai `fa
 
 - **Silhouette:** Low profile (bbox height clearly shorter than idle); keep identity (goggles, ponytail).
 - **Motion:** Enter low → hold slide → slight weight shift → hold (loop). Dust FX optional.
-- **Pivot:** Foot/hip plant drift ≤ **8 px**; **no** pixels below logical ground (no ground-kiss).
+- **Pivot:** `ground_contact` anchor-x drift ≤ **8 px**; **no** pixels below logical ground (no ground-kiss).
 - **Ref:** Approved SCIVOLATA.
 
 #### Nova — `land` (P1) — 4 frames @ 10 FPS, one-shot
 
 - **Silhouette:** Impact squash → recover toward run-ready.
 - **Motion:** Contact → deepest squash → recover → exit pose compatible with `run` frame 0.
-- **Pivot:** Foot-x drift ≤ **8 px**; both feet readable on plant frames.
+- **Pivot:** `ground_contact` anchor-x drift ≤ **8 px**; both feet readable on plant frames.
 - **Continuity:** Must not pop into idle proportions mid-land.
 
 #### Nova — `fall` (P1) — 4 frames @ 8 FPS, loop
 
 - **Silhouette:** Airborne descent; limbs readable; ponytail up/back.
 - **Motion:** Subtle tumble/loop without spinning off-model.
-- **Pivot:** Foot-x drift ≤ **8 px**; keep mass centered for hitchbox.
+- **Pivot:** `body_center` anchor-x drift ≤ **10 px**; keep mass centered for hitchbox.
 - **Continuity:** Loops while airborne until land triggers.
 
 ### Exact file deliverables
@@ -127,11 +135,13 @@ assets/sprites/characters/_incoming/
 
 | Tool | Role |
 |------|------|
-| `scripts/tools/import_m6_character_frames.py` | Validate drops → write `frames/{anim}_NN.png` → patch `frames_manifest.json` **only for ready slots** |
-| `scripts/ci/m6_1_b_build_sprite_frames.gd` | Rebuild `sprite_frames.tres` from manifests (unchanged FPS table; new counts appear automatically) |
-| `scripts/tools/m6_1_d_quality_gate.py` | Metrics + thresholds; **exit 0 only when all rework slots PASS** |
+| `scripts/tools/m6_1_d_pipeline_lib.py` | Shared resize / anchors / similarity / provenance |
+| `scripts/tools/import_m6_character_frames.py` | Whole-canvas import → frames + `import_provenance/{anim}.json` |
+| `scripts/ci/m6_1_b_build_sprite_frames.gd` | Rebuild `sprite_frames.tres` from manifests |
+| `scripts/tools/m6_1_d_quality_gate.py` | Provenance + anchors + similarity; exit 0 only when all PASS |
+| `scripts/tools/m6_1_d_pipeline_selftest.py` | Synthetic pivot/similarity tests (temp only) |
 | `scripts/ci/m6_1_c_anim_record.gd` | Real OpenGL cycle capture after gate |
-| `scripts/ci/m6_1_d_pipeline_smoke.gd` | Headless: spec + tools present; SpriteFrames still load; does **not** claim art complete |
+| `scripts/ci/m6_1_d_pipeline_smoke.gd` | Spec/tools present; SpriteFrames load; does **not** claim art complete |
 
 ### Operator flow
 
@@ -172,7 +182,9 @@ DISPLAY=:1 godot --path . --fixed-fps 30 \
 | Count | Exact `frame_count` from spec; incoming present |
 | Uniqueness | All frame SHA-256 distinct |
 | Canvas | 64×96 after import |
-| Pivot | `foot_x_drift` ≤ slot max (8 or 10 px) |
+| Anchor | `anchor_x_drift` for slot `anchor` kind ≤ slot max |
+| Provenance | Incoming/production hashes match transform record |
+| Similarity | Near-dup FAIL / REVIEW thresholds; REVIEW blocks PASS |
 | Matte | `black_matte_pct` ≤ 2 |
 | Fringe | ≤ 8% |
 | Sharpness | Laplacian mean ≥ 8 |
@@ -181,7 +193,7 @@ DISPLAY=:1 godot --path . --fixed-fps 30 \
 | Godot play | OpenGL record shows full cycle without pops |
 | Correction flag | `correction_complete=true` only if **all** slots PASS |
 
-Exit codes: `0` all PASS · `2` still PENDING · `1` FAIL.
+Exit codes: `0` all PASS · `2` still PENDING · `3` REVIEW · `1` FAIL.
 
 **Current expectation:** gate exits `2` (PENDING) until artists deliver PNGs.
 

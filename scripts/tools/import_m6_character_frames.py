@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""M6.1-D: import independent authored PNG RGBA into gameplay frames.
+"""M6.1-D.1: import independent authored PNG RGBA into gameplay frames.
 
-Does NOT extract from the approved sheet. Does NOT pad with duplicates or
-synthetic inbetweens. Only replaces anims that have a complete incoming drop.
+Whole-canvas resize only — preserves artist pivots/margins.
+Does NOT extract from sheet, pad with duplicates, trim, or re-center.
 
 Usage:
   python3 scripts/tools/import_m6_character_frames.py --status
@@ -12,80 +12,32 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import re
 import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[2]
-SPEC_PATH = ROOT / "assets/sprites/characters/_incoming/REWORK_SPEC.json"
-ALPHA_KEEP = 48
-PNG_RE = re.compile(r".*\.png$", re.I)
+_TOOLS = Path(__file__).resolve().parent
+if str(_TOOLS) not in sys.path:
+	sys.path.insert(0, str(_TOOLS))
+
+from m6_1_d_pipeline_lib import (  # noqa: E402
+	ROOT,
+	TRANSFORM_ID,
+	build_provenance_record,
+	load_spec,
+	natural_pngs,
+	resize_whole_canvas,
+	sha256_bytes,
+	sha256_file,
+	slot_anchor,
+	write_provenance,
+)
 
 
-def load_spec() -> dict:
-	data = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
-	if not data.get("do_not_pad_with_duplicates", True):
-		raise SystemExit("SPEC must keep do_not_pad_with_duplicates=true")
-	if not data.get("do_not_extract_from_sheet", True):
-		raise SystemExit("SPEC must keep do_not_extract_from_sheet=true")
-	return data
-
-
-def natural_pngs(folder: Path) -> list[Path]:
-	files = [p for p in folder.iterdir() if p.is_file() and PNG_RE.match(p.name)]
-	def key(p: Path) -> tuple:
-		nums = re.findall(r"\d+", p.stem)
-		return (tuple(int(n) for n in nums), p.name.lower())
-	return sorted(files, key=key)
-
-
-def clean_alpha(rgba: np.ndarray) -> np.ndarray:
-	out = rgba.copy()
-	a = out[:, :, 3]
-	out[a < ALPHA_KEEP, 3] = 0
-	out[out[:, :, 3] == 0, 0:3] = 0
-	return out
-
-
-def place_on_canvas(rgba: np.ndarray, canvas_w: int, canvas_h: int) -> np.ndarray:
-	"""Feet at bottom-center; optional downscale if larger than canvas."""
-	rgba = clean_alpha(rgba)
-	ys, xs = np.where(rgba[:, :, 3] > 0)
-	if len(xs) == 0:
-		raise ValueError("empty alpha — refuse blank frame")
-	x0, x1 = int(xs.min()), int(xs.max())
-	y0, y1 = int(ys.min()), int(ys.max())
-	trimmed = rgba[y0 : y1 + 1, x0 : x1 + 1]
-	th, tw = trimmed.shape[:2]
-	scale = min(1.0, (canvas_w - 4) / max(tw, 1), (canvas_h - 4) / max(th, 1))
-	if scale < 0.999:
-		nw = max(1, int(round(tw * scale)))
-		nh = max(1, int(round(th * scale)))
-		trimmed = np.array(
-			Image.fromarray(trimmed, "RGBA").resize((nw, nh), Image.Resampling.LANCZOS)
-		)
-		th, tw = trimmed.shape[:2]
-	if th > canvas_h or tw > canvas_w:
-		raise ValueError(f"content {tw}x{th} exceeds canvas {canvas_w}x{canvas_h}")
-	canvas = np.zeros((canvas_h, canvas_w, 4), dtype=np.uint8)
-	dest_y = canvas_h - th - 2
-	dest_x = (canvas_w - tw) // 2
-	dest_y = max(0, dest_y)
-	dest_x = max(0, min(dest_x, canvas_w - tw))
-	canvas[dest_y : dest_y + th, dest_x : dest_x + tw] = trimmed
-	return canvas
-
-
-def sha256_bytes(data: bytes) -> str:
-	return hashlib.sha256(data).hexdigest()
-
-
-def validate_drop(slot: dict, paths: list[Path], accepted_sizes: list[list[int]]) -> None:
+def validate_drop(slot: dict, paths: list[Path], accepted_sizes: list[list[int]]) -> list[int]:
 	need = int(slot["frame_count"])
 	if len(paths) != need:
 		raise ValueError(
@@ -94,25 +46,32 @@ def validate_drop(slot: dict, paths: list[Path], accepted_sizes: list[list[int]]
 		)
 	hashes: list[str] = []
 	accepted = {tuple(s) for s in accepted_sizes}
+	source_size: list[int] | None = None
 	for p in paths:
 		im = Image.open(p).convert("RGBA")
-		if tuple(im.size) not in accepted:
+		size = list(im.size)
+		if tuple(size) not in accepted:
+			raise ValueError(f"{p}: size {im.size} not in accepted {sorted(accepted)}")
+		if source_size is None:
+			source_size = size
+		elif size != source_size:
 			raise ValueError(
-				f"{p}: size {im.size} not in accepted {sorted(accepted)}"
+				f"{p}: mixed source sizes in drop ({size} vs {source_size})"
 			)
 		arr = np.array(im)
-		if arr[:, :, 3].max() < ALPHA_KEEP:
-			raise ValueError(f"{p}: no opaque pixels")
-		# Adjacent duplicate check on source bytes.
+		if arr[:, :, 3].max() == 0:
+			raise ValueError(f"{p}: blank alpha")
 		h = sha256_bytes(p.read_bytes())
 		if hashes and h == hashes[-1]:
 			raise ValueError(f"{p}: identical to previous frame — refuse duplicates")
 		hashes.append(h)
 	if len(set(hashes)) < len(hashes):
 		raise ValueError(f"{slot['id']}/{slot['anim']}: non-unique frames in drop")
+	assert source_size is not None
+	return source_size
 
 
-def update_manifest(char_id: str, anim: str, frame_count: int, canvas: list[int]) -> None:
+def update_frames_manifest(char_id: str, anim: str, frame_count: int, canvas: list[int]) -> None:
 	manifest_path = ROOT / f"assets/sprites/characters/{char_id}/frames_manifest.json"
 	data = json.loads(manifest_path.read_text(encoding="utf-8"))
 	paths = [
@@ -127,11 +86,12 @@ def update_manifest(char_id: str, anim: str, frame_count: int, canvas: list[int]
 
 def slot_status(slot: dict, accepted_sizes: list[list[int]]) -> dict:
 	folder = ROOT / slot["incoming_dir"]
-	paths = natural_pngs(folder) if folder.is_dir() else []
+	paths = natural_pngs(folder)
 	info = {
 		"id": slot["id"],
 		"anim": slot["anim"],
 		"priority": slot["priority"],
+		"anchor": slot_anchor(slot),
 		"required": int(slot["frame_count"]),
 		"found": len(paths),
 		"ready": False,
@@ -148,13 +108,16 @@ def slot_status(slot: dict, accepted_sizes: list[list[int]]) -> dict:
 	return info
 
 
-def import_slot(slot: dict, canvas: list[int], accepted_sizes: list[list[int]], dry_run: bool) -> None:
+def import_slot(
+	slot: dict, canvas: list[int], accepted_sizes: list[list[int]], dry_run: bool
+) -> None:
 	folder = ROOT / slot["incoming_dir"]
 	paths = natural_pngs(folder)
-	validate_drop(slot, paths, accepted_sizes)
+	source_size = validate_drop(slot, paths, accepted_sizes)
 	cw, ch = int(canvas[0]), int(canvas[1])
 	out_dir = ROOT / f"assets/sprites/characters/{slot['id']}/frames"
-	# Remove prior frames for this anim only (including extras beyond new count).
+	out_dir.mkdir(parents=True, exist_ok=True)
+
 	for old in out_dir.glob(f"{slot['anim']}_*.png"):
 		if dry_run:
 			print(f"  dry-run would remove {old.relative_to(ROOT)}")
@@ -163,29 +126,43 @@ def import_slot(slot: dict, canvas: list[int], accepted_sizes: list[list[int]], 
 			imp = Path(str(old) + ".import")
 			if imp.exists():
 				imp.unlink()
+
+	written: list[Path] = []
 	for i, src in enumerate(paths):
-		rgba = np.array(Image.open(src).convert("RGBA"))
-		placed = place_on_canvas(rgba, cw, ch)
+		rgba = np.array(Image.open(src).convert("RGBA"), dtype=np.uint8)
+		placed = resize_whole_canvas(rgba, cw, ch)
 		dest = out_dir / f"{slot['anim']}_{i:02d}.png"
 		if dry_run:
-			print(f"  dry-run would write {dest.relative_to(ROOT)} from {src.name}")
+			print(
+				f"  dry-run would write {dest.relative_to(ROOT)} "
+				f"from {src.name} via {TRANSFORM_ID} ({source_size}->[{cw},{ch}])"
+			)
 			continue
 		Image.fromarray(placed, "RGBA").save(dest)
-		print(f"  wrote {dest.relative_to(ROOT)}")
-	if not dry_run:
-		update_manifest(slot["id"], slot["anim"], int(slot["frame_count"]), canvas)
+		written.append(dest)
+		print(f"  wrote {dest.relative_to(ROOT)} sha={sha256_file(dest)[:12]}…")
+
+	if dry_run:
+		return
+
+	update_frames_manifest(slot["id"], slot["anim"], int(slot["frame_count"]), canvas)
+	record = build_provenance_record(slot, paths, written, canvas, source_size)
+	# Sanity: every output must match expected transform hash.
+	for fr in record["frames"]:
+		if fr["output_rgba_sha256"] != fr["expected_output_sha256"]:
+			raise ValueError(
+				f"provenance mismatch frame {fr['index']}: "
+				"output RGBA != expected transform"
+			)
+	prov = write_provenance(record)
+	print(f"  provenance {prov.relative_to(ROOT)} anchor={record['anchor']}")
 
 
 def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__)
-	parser.add_argument("--status", action="store_true", help="list rework slot readiness")
-	parser.add_argument("--dry-run", action="store_true", help="validate without writing")
-	parser.add_argument(
-		"--only",
-		action="append",
-		default=[],
-		help="limit to id/anim (e.g. kai/run); repeatable",
-	)
+	parser.add_argument("--status", action="store_true")
+	parser.add_argument("--dry-run", action="store_true")
+	parser.add_argument("--only", action="append", default=[])
 	args = parser.parse_args()
 	spec = load_spec()
 	canvas = list(spec["canvas_game"])
@@ -205,10 +182,12 @@ def main() -> int:
 			extra = "" if st["ready"] else f" — {st['error']}"
 			print(
 				f"[{mark}] {st['priority']} {st['id']}/{st['anim']} "
-				f"{st['found']}/{st['required']}{extra}"
+				f"anchor={st['anchor']} {st['found']}/{st['required']}{extra}"
 			)
-		ready_n = sum(1 for s in statuses if s["ready"])
-		print(f"Ready {ready_n}/{len(statuses)}; milestone={spec.get('status')}")
+		print(
+			f"Ready {sum(1 for s in statuses if s['ready'])}/{len(statuses)}; "
+			f"milestone={spec.get('status')}"
+		)
 		return 0
 
 	ready_slots = [s for s, st in zip(slots, statuses) if st["ready"]]
@@ -221,7 +200,10 @@ def main() -> int:
 		return 2
 
 	for slot in ready_slots:
-		print(f"Importing {slot['id']}/{slot['anim']} ({slot['frame_count']} frames)…")
+		print(
+			f"Importing {slot['id']}/{slot['anim']} "
+			f"({slot['frame_count']} frames, anchor={slot_anchor(slot)})…"
+		)
 		try:
 			import_slot(slot, canvas, accepted, dry_run=args.dry_run)
 		except ValueError as exc:

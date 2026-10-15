@@ -8,6 +8,8 @@ const LABEL := "M6.1-D pipeline smoke"
 const SPEC := "res://assets/sprites/characters/_incoming/REWORK_SPEC.json"
 const IMPORT_TOOL := "res://scripts/tools/import_m6_character_frames.py"
 const GATE_TOOL := "res://scripts/tools/m6_1_d_quality_gate.py"
+const LIB_TOOL := "res://scripts/tools/m6_1_d_pipeline_lib.py"
+const SELFTEST := "res://scripts/tools/m6_1_d_pipeline_selftest.py"
 const IDS := ["kai", "nova"]
 const KEEP := {
 	"kai": ["idle", "jump", "fall", "land", "slide", "hit"],
@@ -32,6 +34,14 @@ func _run() -> void:
 		push_error("%s: missing %s" % [LABEL, GATE_TOOL])
 		quit(1)
 		return
+	if not FileAccess.file_exists(LIB_TOOL):
+		push_error("%s: missing %s" % [LABEL, LIB_TOOL])
+		quit(1)
+		return
+	if not FileAccess.file_exists(SELFTEST):
+		push_error("%s: missing %s" % [LABEL, SELFTEST])
+		quit(1)
+		return
 
 	var f := FileAccess.open(SPEC, FileAccess.READ)
 	var data: Variant = JSON.parse_string(f.get_as_text())
@@ -48,11 +58,25 @@ func _run() -> void:
 		push_error("%s: SPEC must forbid sheet extract for rework" % LABEL)
 		quit(1)
 		return
+	var transform: Variant = data.get("transform", {})
+	if typeof(transform) != TYPE_DICTIONARY:
+		push_error("%s: SPEC missing transform block" % LABEL)
+		quit(1)
+		return
+	if bool(transform.get("auto_trim", true)) or bool(transform.get("auto_center", true)):
+		push_error("%s: SPEC must disable auto_trim/auto_center" % LABEL)
+		quit(1)
+		return
 	var rework: Array = data.get("rework", [])
 	if rework.is_empty():
 		push_error("%s: rework list empty" % LABEL)
 		quit(1)
 		return
+	for item: Variant in rework:
+		if str(item.get("anchor", "")) == "":
+			push_error("%s: rework slot missing anchor" % LABEL)
+			quit(1)
+			return
 	print("%s: SPEC OK slots=%d status=%s" % [LABEL, rework.size(), str(data.get("status", "?"))])
 
 	## Live characters must still resolve SpriteFrames (system not broken).

@@ -10,8 +10,10 @@ Gameplay collision stays on `Player/CollisionShape2D` and never reads sprite bou
 | Legacy sheet (RGBA) | `assets/sprites/characters/_source/kai_nova_sheet_approved.png` |
 | Legacy extractor | `scripts/tools/extract_m6_character_frames.py` (**do not use for M6.1-D rework slots**) |
 | M6.1-D incoming drops | `assets/sprites/characters/_incoming/` + `REWORK_SPEC.json` |
-| M6.1-D importer | `scripts/tools/import_m6_character_frames.py` |
-| M6.1-D quality gate | `scripts/tools/m6_1_d_quality_gate.py` |
+| M6.1-D importer | `scripts/tools/import_m6_character_frames.py` (whole-canvas resize only) |
+| M6.1-D quality gate | `scripts/tools/m6_1_d_quality_gate.py` (provenance + anchors + similarity) |
+| M6.1-D self-test | `scripts/tools/m6_1_d_pipeline_selftest.py` |
+| M6.1-D shared lib | `scripts/tools/m6_1_d_pipeline_lib.py` |
 | SpriteFrames builder | `scripts/ci/m6_1_b_build_sprite_frames.gd` |
 
 **M6.1-B:** Kai and Nova gameplay sprites are integrated. Colored proxies remain **emergency fallback only** when `sprite_frames.tres` is missing or incomplete.
