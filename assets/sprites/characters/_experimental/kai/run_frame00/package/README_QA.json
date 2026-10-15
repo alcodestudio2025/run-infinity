@@ -1,0 +1,17 @@
+{
+  "source": "a_clean_high_resolution_png_style_character_illu.png",
+  "canvas": [
+    128,
+    192
+  ],
+  "frame": "00.png",
+  "alpha_transparent_pixels": 15753,
+  "source_bbox": [
+    78,
+    164,
+    977,
+    1480
+  ],
+  "status": "TECHNICAL_PROTOTYPE_NOT_ANIMATION_QA_APPROVED",
+  "note": "Segmentation-based cutout from concept art; manual edge review needed; not yet approved for import."
+}
