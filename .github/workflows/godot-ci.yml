@@ -216,6 +216,13 @@ jobs:
           grep -q 'userdata isolation OK' /tmp/m6-1-character-smoke.log
           grep -q 'M6.1 character smoke PASS' /tmp/m6-1-character-smoke.log
 
+      - name: M6.1-B asset smoke (SpriteFrames required, proxy hidden)
+        run: |
+          set -euo pipefail
+          godot --headless --path . --fixed-fps 60 -s res://scripts/ci/m6_1_b_asset_smoke.gd 2>&1 | tee /tmp/m6-1-b-asset-smoke.log
+          grep -q 'userdata isolation OK' /tmp/m6-1-b-asset-smoke.log
+          grep -q 'M6.1-B asset smoke PASS' /tmp/m6-1-b-asset-smoke.log
+
       - name: M3 smoke save-safety (positive isolated + negative refuse)
         run: |
           set -euo pipefail

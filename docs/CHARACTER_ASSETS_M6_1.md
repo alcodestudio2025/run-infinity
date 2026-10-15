@@ -1,74 +1,69 @@
-# M6.1 — Character asset pipeline
+# M6.1 / M6.1-B — Character asset pipeline
 
-Drop final Kai / Nova art **without code changes**. Gameplay collision stays on `Player/CollisionShape2D` and never reads sprite bounds.
+Gameplay collision stays on `Player/CollisionShape2D` and never reads sprite bounds.
 
-## Approved concepts
+## Approved source
 
-- Store reference (source of truth for look): project media `m6-character-ref-kai-nova.jpg`
-- Repo copy for PR/docs: `docs/media/m6-character-ref-kai-nova.jpg`
-- **Final sprites are not in this PR.** Colored proxy silhouettes ship as safe fallback only — they are **not** final art.
+| Item | Path |
+|------|------|
+| Approved sheet (RGBA) | `assets/sprites/characters/_source/kai_nova_sheet_approved.png` |
+| Extractor | `scripts/tools/extract_m6_character_frames.py` |
+| SpriteFrames builder | `scripts/ci/m6_1_b_build_sprite_frames.gd` |
+
+**M6.1-B:** Kai and Nova gameplay sprites are integrated. Colored proxies remain **emergency fallback only** when `sprite_frames.tres` is missing or incomplete.
 
 ## Stable IDs
 
-| ID | Display | Palette (approx.) |
-|----|---------|-------------------|
-| `kai` | Kai | Yellow primary, black secondary, orange accents |
-| `nova` | Nova | Fuchsia primary, teal secondary |
-
-Defined in `scripts/characters/CharacterCatalog.gd`.
+| ID | Display | Tagline |
+|----|---------|---------|
+| `kai` | Kai | Eroe Atletico |
+| `nova` | Nova | Esploratrice |
 
 ## Folder layout
 
 ```
 assets/sprites/characters/
+  _source/kai_nova_sheet_approved.png
   kai/
-    sprite_frames.tres    ← preferred Godot SpriteFrames resource
+    frames/*.png          ← 64×96 RGBA, feet at bottom-center
+    frames_manifest.json
+    sprite_frames.tres
   nova/
+    frames/*.png
+    frames_manifest.json
     sprite_frames.tres
 ```
 
-Paths are fixed by catalog (`…/kai/sprite_frames.tres`, `…/nova/sprite_frames.tres`).  
-If the `.tres` is missing, `CharacterVisual` uses the colored proxy automatically.
-
 ## SpriteFrames contract
 
-Create a `SpriteFrames` resource (Godot editor → New Resource → SpriteFrames) with these **exact** animation names:
+Exact animation names (see `CharacterCatalog`):
 
-| Anim | Use |
-|------|-----|
-| `idle` | Title / wait |
-| `run` | Ground run |
-| `jump` | Ascending |
-| `fall` | Descending / launched |
-| `slide` | Ground slide |
-| `grapple` | Swing attach |
-| `land` | Brief touchdown |
-| `hit` | Death / hit |
+| Anim | Loop | Notes |
+|------|------|-------|
+| `idle` | yes | |
+| `run` | yes | |
+| `jump` | no | |
+| `fall` | yes | |
+| `land` | no | brief |
+| `slide` | yes | |
+| `grapple` | yes | |
+| `hit` | no | |
 
-### Import conventions (transparent PNG)
+### Pivot / scale
 
-1. Export frames or sheets as **RGBA PNG** (transparent background).
-2. Drop PNGs under `assets/sprites/characters/{id}/` (any filenames).
-3. In Godot: Import dock → ensure **Compress** mode suitable for mobile (VRAM / ETC2 as project default).
-4. Build `sprite_frames.tres` pointing at those textures; assign loop for `idle`/`run`, one-shot for `land`/`hit` as preferred.
-5. **Common canvas:** design around **64×96** logical body (or consistent multiple). Pivot / offset should place **feet at CharacterVisual origin** (body extends upward). `CharacterVisual` sets `AnimatedSprite2D.centered = true` and `offset = (0, -48)` for the 64×96 canon — match that or adjust the resource offsets once, not Player collision.
+- Canvas **64×96** matches `CharacterVisual.CANONICAL_SIZE`.
+- Feet at bottom-center; `AnimatedSprite2D.centered` + `offset=(0,-48)`.
+- Do **not** change hitboxes for art.
 
-### Scale / pivot rules
+## Rebuild
 
-- Do **not** change `GameConfig.PLAYER_*_HITBOX_*` for aesthetic differences.
-- Do **not** parent `CollisionShape2D` under the visual node.
-- Shared physical controller: `PlayerMovement` + same hitboxes for Kai and Nova.
-- Per-character polish belongs only in `sprite_frames.tres` (and optional modulate), never in hitbox constants.
+```bash
+python3 scripts/tools/extract_m6_character_frames.py
+godot --headless --path . --import --quit
+godot --headless --path . -s res://scripts/ci/m6_1_b_build_sprite_frames.gd
+```
 
-## Swap checklist (artist → engineer optional)
+## Out of scope
 
-1. Add PNGs under `assets/sprites/characters/kai/` and `…/nova/`.
-2. Author `sprite_frames.tres` with the eight anim names.
-3. Re-open project (or CI import) — no GDScript edit required.
-4. Verify headless: `m6_1_character_smoke.gd` still PASS; in-editor run shows frames instead of proxy (`CharacterVisual.is_using_sprite_frames() == true`).
-
-## Out of scope (M6.1)
-
-- Final painted sprites / sheets (must be provided separately)
-- M6.2 content, APK export, M5.1.3 gameplay fixes
-- Per-character collision or movement stats
+- Per-character physics
+- M6.2 content / APK

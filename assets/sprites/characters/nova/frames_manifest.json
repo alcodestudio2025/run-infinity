@@ -1,0 +1,51 @@
+{
+  "id": "nova",
+  "canvas": [
+    64,
+    96
+  ],
+  "anims": {
+    "idle": [
+      "res://assets/sprites/characters/nova/frames/idle_00.png",
+      "res://assets/sprites/characters/nova/frames/idle_01.png",
+      "res://assets/sprites/characters/nova/frames/idle_02.png",
+      "res://assets/sprites/characters/nova/frames/idle_03.png"
+    ],
+    "run": [
+      "res://assets/sprites/characters/nova/frames/run_00.png",
+      "res://assets/sprites/characters/nova/frames/run_01.png",
+      "res://assets/sprites/characters/nova/frames/run_02.png",
+      "res://assets/sprites/characters/nova/frames/run_03.png",
+      "res://assets/sprites/characters/nova/frames/run_04.png",
+      "res://assets/sprites/characters/nova/frames/run_05.png"
+    ],
+    "jump": [
+      "res://assets/sprites/characters/nova/frames/jump_00.png",
+      "res://assets/sprites/characters/nova/frames/jump_01.png",
+      "res://assets/sprites/characters/nova/frames/jump_02.png"
+    ],
+    "fall": [
+      "res://assets/sprites/characters/nova/frames/fall_00.png",
+      "res://assets/sprites/characters/nova/frames/fall_01.png",
+      "res://assets/sprites/characters/nova/frames/fall_02.png"
+    ],
+    "land": [
+      "res://assets/sprites/characters/nova/frames/land_00.png",
+      "res://assets/sprites/characters/nova/frames/land_01.png",
+      "res://assets/sprites/characters/nova/frames/land_02.png"
+    ],
+    "slide": [
+      "res://assets/sprites/characters/nova/frames/slide_00.png",
+      "res://assets/sprites/characters/nova/frames/slide_01.png",
+      "res://assets/sprites/characters/nova/frames/slide_02.png"
+    ],
+    "grapple": [
+      "res://assets/sprites/characters/nova/frames/grapple_00.png",
+      "res://assets/sprites/characters/nova/frames/grapple_01.png"
+    ],
+    "hit": [
+      "res://assets/sprites/characters/nova/frames/hit_00.png",
+      "res://assets/sprites/characters/nova/frames/hit_01.png"
+    ]
+  }
+}

@@ -7,6 +7,8 @@ extends Node2D
 const LAND_HOLD_SEC: float = 0.12
 ## Canonical draw size for proxy + imported frames (pivot at feet / body origin).
 const CANONICAL_SIZE: Vector2 = Vector2(64.0, 96.0)
+## Visual-only upscale so 64×96 sheets read on 1920×1080 (does not touch hitboxes).
+const DISPLAY_SCALE: float = 1.75
 
 var character_id: String = CharacterCatalog.DEFAULT_ID
 var current_anim: String = CharacterCatalog.ANIM_IDLE
@@ -140,6 +142,7 @@ func _ensure_nodes() -> void:
 			add_child(_animated)
 		_animated.centered = true
 		_animated.offset = Vector2(0.0, -CANONICAL_SIZE.y * 0.5)
+		_animated.scale = Vector2(DISPLAY_SCALE, DISPLAY_SCALE)
 		_animated.visible = false
 
 	if _proxy_body == null:
@@ -184,6 +187,15 @@ func _try_load_sprite_frames(path: String) -> bool:
 	var frames: SpriteFrames = load(path) as SpriteFrames
 	if frames == null:
 		return false
+	## Require the full catalog set so we never mix proxy + partial sheets.
+	for anim: String in CharacterCatalog.all_anims():
+		if not frames.has_animation(anim) or frames.get_frame_count(anim) < 1:
+			push_warning(
+				"CharacterVisual: %s missing anim '%s' — using emergency proxy."
+				% [path, anim]
+			)
+			_animated.sprite_frames = null
+			return false
 	_animated.sprite_frames = frames
 	return true
 
