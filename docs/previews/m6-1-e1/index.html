@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>M6.1-E.1 — Kai RUN Frame 00 visual preview</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1b1e27;
+    --text: #e8e6e1;
+    --muted: #9aa0ad;
+    --accent: #6bcf8e;
+    --warn: #e0a35a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+  }
+  header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #2a2f3a;
+    background: #0e1015;
+  }
+  header h1 { margin: 0 0 0.35rem; font-size: 1.35rem; font-weight: 650; }
+  header p { margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 70ch; }
+  .badge {
+    display: inline-block;
+    margin-top: 0.6rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    background: #3a2a12;
+    color: var(--warn);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--panel);
+    border-bottom: 1px solid #2a2f3a;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  nav button {
+    background: #252a36;
+    color: var(--text);
+    border: 1px solid #3a4150;
+    border-radius: 6px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+  }
+  nav button.active, nav button:hover { border-color: var(--accent); color: var(--accent); }
+  main { padding: 1.25rem 1.5rem 3rem; max-width: 1200px; margin: 0 auto; }
+  section { display: none; }
+  section.active { display: block; }
+  h2 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+  .note { color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; }
+  .board {
+    background: #0a0b0e;
+    border: 1px solid #2a2f3a;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .board img {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    /* no contrast/blur/brightness filters — defects stay visible */
+    filter: none;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0.75rem 0 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .toolbar label { display: flex; align-items: center; gap: 0.4rem; }
+  .toolbar input[type="range"] { width: 160px; }
+  .zoom-wrap {
+    overflow: auto;
+    max-height: 75vh;
+    background: #0a0b0e;
+    border: 1px solid #2a2f3a;
+    border-radius: 8px;
+  }
+  .zoom-wrap img {
+    transform-origin: top left;
+    transition: none;
+    cursor: grab;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+  .pair .cap {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0.35rem 0 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  th, td {
+    border: 1px solid #2a2f3a;
+    padding: 0.45rem 0.6rem;
+    text-align: left;
+  }
+  th { background: #1a1f2a; }
+  .slider-compare {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid #2a2f3a;
+    background: #000;
+    user-select: none;
+  }
+  .slider-compare img {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+  }
+  .slider-compare .top {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 50%;
+    overflow: hidden;
+    border-right: 2px solid var(--accent);
+  }
+  .slider-compare .top img {
+    max-width: none;
+    width: var(--full-w, 100%);
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+  }
+  .metrics { color: var(--muted); font-size: 0.85rem; }
+  footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #2a2f3a;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  code { color: #c9d4ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kai RUN Frame 00 — visual evaluation</h1>
+  <p>
+    Confronto live vs sperimentale con immagini <strong>reali Godot OpenGL</strong>
+    (nearest, senza filtri estetici). Scala uguale e piedi allineati dove indicato.
+  </p>
+  <span class="badge">PREVIEW ONLY · quality gate NON superato · sprite live invariati</span>
+</header>
+
+<nav id="nav">
+  <button data-tab="compare" class="active">1. Confronti scala</button>
+  <button data-tab="enlarge">2. 4× / 8×</button>
+  <button data-tab="bg">3. Sfondi / aloni</button>
+  <button data-tab="gameplay">4. Android landscape</button>
+  <button data-tab="hires">5. 128×192 ×4</button>
+  <button data-tab="metrics">6. Metriche</button>
+</nav>
+
+<main>
+  <section id="compare" class="active">
+    <h2>Tavola comparativa — stessa scala, piedi allineati</h2>
+    <p class="note">Sinistra = live <code>run_00</code> · Destra = sperimentale 64×96 (whole-canvas da 128×192). Linea verde = suolo.</p>
+    <div class="toolbar">
+      <label>Zoom <input id="zoom-compare" type="range" min="1" max="4" step="0.1" value="1" /> <span id="zoom-compare-val">1.0×</span></label>
+    </div>
+    <div class="zoom-wrap"><img id="img-compare" src="01_compare_same_scale_feet.png" alt="Compare same scale feet aligned" /></div>
+
+    <h2 style="margin-top:1.5rem">Slider interattivo (light BG pair)</h2>
+    <p class="note">Trascina per rivelare live vs sperimentale sulle capture Godot a sfondo chiaro (4× nearest).</p>
+    <div class="slider-compare" id="slider">
+      <img id="slider-base" src="04a_bg_light_experimental.png" alt="Experimental light" />
+      <div class="top" id="slider-top">
+        <img id="slider-overlay" src="04c_bg_light_live.png" alt="Live light" />
+      </div>
+    </div>
+  </section>
+
+  <section id="enlarge">
+    <h2>Ingrandimenti nearest 4× e 8×</h2>
+    <p class="note">Nessuna interpolazione “migliorativa”: pixel evidenti.</p>
+    <div class="toolbar">
+      <label>Zoom <input id="zoom-enlarg" type="range" min="1" max="3" step="0.1" value="1" /> <span id="zoom-enlarg-val">1.0×</span></label>
+    </div>
+    <div class="zoom-wrap" style="margin-bottom:1rem"><img id="img-4x" src="02_enlarge_4x_nearest.png" alt="4x enlarge both" /></div>
+    <div class="grid2">
+      <div class="pair board"><img src="03a_enlarge_8x_live_nearest.png" alt="8x live" /><p class="cap">Live ×8 nearest</p></div>
+      <div class="pair board"><img src="03b_enlarge_8x_experimental_nearest.png" alt="8x experimental" /><p class="cap">Experimental ×8 nearest</p></div>
+    </div>
+  </section>
+
+  <section id="bg">
+    <h2>Sfondo chiaro / scuro / scacchiera</h2>
+    <p class="note">Cambia sfondo per cercare aloni e fringe. Solo immagini Godot.</p>
+    <div class="toolbar">
+      <label>Soggetto
+        <select id="bg-subject">
+          <option value="exp">Sperimentale</option>
+          <option value="live">Live</option>
+        </select>
+      </label>
+      <label>Sfondo
+        <select id="bg-kind">
+          <option value="light">Chiaro</option>
+          <option value="dark">Scuro</option>
+          <option value="checker">Scacchiera</option>
+        </select>
+      </label>
+    </div>
+    <div class="board"><img id="bg-img" src="04a_bg_light_experimental.png" alt="Background stress" /></div>
+  </section>
+
+  <section id="gameplay">
+    <h2>Dimensioni gameplay Android landscape</h2>
+    <p class="note">Viewport 1920×1080, <code>DISPLAY_SCALE = 1.75</code> → sprite on-screen ≈ 112×168 px. Entrambi a piedi sulla stessa riga.</p>
+    <div class="toolbar">
+      <label>Zoom <input id="zoom-game" type="range" min="1" max="3" step="0.1" value="1" /> <span id="zoom-game-val">1.0×</span></label>
+    </div>
+    <div class="zoom-wrap"><img id="img-game" src="05_android_landscape_gameplay_scale.png" alt="Android landscape gameplay scale" /></div>
+  </section>
+
+  <section id="hires">
+    <h2>Sorgente 128×192 ×4 su scacchiera</h2>
+    <p class="note">Audit bordi del PNG autore (non il downscale 64×96).</p>
+    <div class="toolbar">
+      <label>Zoom <input id="zoom-hi" type="range" min="1" max="3" step="0.1" value="1" /> <span id="zoom-hi-val">1.0×</span></label>
+    </div>
+    <div class="zoom-wrap"><img id="img-hi" src="06_experimental_128_x4_checker.png" alt="128 source x4 checker" /></div>
+  </section>
+
+  <section id="metrics">
+    <h2>Differenze misurate (64×96 canvas)</h2>
+    <p class="note">Da <code>compare_metrics.json</code>. Gate M6.1-D <strong>non</strong> superato.</p>
+    <table>
+      <thead><tr><th>Metrica</th><th>Live run_00</th><th>Experimental</th><th>Nota</th></tr></thead>
+      <tbody>
+        <tr><td>BBox height</td><td>72 px</td><td>85 px</td><td>Exp ≈ <strong>+18%</strong> più alto nel canvas</td></tr>
+        <tr><td>Foot-x</td><td>25.3</td><td>41.6</td><td>Δ <strong>16.3 px</strong> (pivot orizzontale diverso)</td></tr>
+        <tr><td>Pad piedi dal bottom</td><td>2 px</td><td>2 px</td><td>Allineabili verticalmente</td></tr>
+        <tr><td>Sharp (Laplacian)</td><td>62.3</td><td>73.9</td><td>Exp più “duro” ma con più fringe</td></tr>
+        <tr><td>Fringe %</td><td>5.57</td><td>10.63</td><td>Exp ~2× fringe (aloni cutout)</td></tr>
+        <tr><td>Mean RGB</td><td>137,92,68</td><td>223,155,111</td><td>Palette più saturata / costume diverso</td></tr>
+        <tr><td>Gameplay size</td><td colspan="2">112×168 @ 1.75×</td><td>Su 1920×1080 landscape</td></tr>
+      </tbody>
+    </table>
+    <p class="metrics" style="margin-top:1rem">
+      Costume: pantaloni lunghi + ginocchiera rossa vs shorts scuri live; giallo più saturo.
+      Nitidezza: a 8× nearest si vedono pixel e speck arancioni staccati.
+      Scala: fill silhouette maggiore → a parità di scale Godot l’exp domina il frame.
+    </p>
+  </section>
+
+  <footer>
+    Immagini generate da <code>scripts/ci/m6_1_e1_kai_visual_board.gd</code>.
+    Report: <code>docs/reviews/M6_1_E1_KAI_VISUAL_PREVIEW.md</code>.
+    Apri questo file via browser locale (file:// o static server).
+  </footer>
+</main>
+
+<script>
+const tabs = document.querySelectorAll('nav button');
+const sections = document.querySelectorAll('main > section');
+tabs.forEach(btn => btn.addEventListener('click', () => {
+  tabs.forEach(b => b.classList.remove('active'));
+  sections.forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+}));
+
+function bindZoom(rangeId, valId, imgId) {
+  const range = document.getElementById(rangeId);
+  const val = document.getElementById(valId);
+  const img = document.getElementById(imgId);
+  const apply = () => {
+    const z = range.value;
+    val.textContent = Number(z).toFixed(1) + '×';
+    img.style.width = (100 * z) + '%';
+  };
+  range.addEventListener('input', apply);
+  apply();
+}
+bindZoom('zoom-compare', 'zoom-compare-val', 'img-compare');
+bindZoom('zoom-enlarg', 'zoom-enlarg-val', 'img-4x');
+bindZoom('zoom-game', 'zoom-game-val', 'img-game');
+bindZoom('zoom-hi', 'zoom-hi-val', 'img-hi');
+
+const bgMap = {
+  exp: { light: '04a_bg_light_experimental.png', dark: '04b_bg_dark_experimental.png', checker: '04e_bg_checker_experimental.png' },
+  live: { light: '04c_bg_light_live.png', dark: '04d_bg_dark_live.png', checker: '04f_bg_checker_live.png' },
+};
+const bgImg = document.getElementById('bg-img');
+const bgSubject = document.getElementById('bg-subject');
+const bgKind = document.getElementById('bg-kind');
+function refreshBg() { bgImg.src = bgMap[bgSubject.value][bgKind.value]; }
+bgSubject.addEventListener('change', refreshBg);
+bgKind.addEventListener('change', refreshBg);
+
+/* Slider compare */
+const slider = document.getElementById('slider');
+const top = document.getElementById('slider-top');
+const base = document.getElementById('slider-base');
+const overlay = document.getElementById('slider-overlay');
+function syncSliderWidth() {
+  const w = base.clientWidth;
+  slider.style.setProperty('--full-w', w + 'px');
+  overlay.style.width = w + 'px';
+}
+base.addEventListener('load', syncSliderWidth);
+window.addEventListener('resize', syncSliderWidth);
+function setSplit(clientX) {
+  const rect = slider.getBoundingClientRect();
+  let x = (clientX - rect.left) / rect.width;
+  x = Math.max(0.02, Math.min(0.98, x));
+  top.style.width = (x * 100) + '%';
+}
+let dragging = false;
+slider.addEventListener('pointerdown', e => { dragging = true; setSplit(e.clientX); slider.setPointerCapture(e.pointerId); });
+slider.addEventListener('pointermove', e => { if (dragging) setSplit(e.clientX); });
+slider.addEventListener('pointerup', () => { dragging = false; });
+syncSliderWidth();
+</script>
+</body>
+</html>

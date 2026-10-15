@@ -1,0 +1,111 @@
+{
+  "live_run_00": {
+    "path": "assets/sprites/characters/kai/frames/run_00.png",
+    "canvas": [
+      64,
+      96
+    ],
+    "bbox": [
+      2,
+      22,
+      61,
+      93
+    ],
+    "bbox_wh": [
+      60,
+      72
+    ],
+    "opaque_pct": 35.99,
+    "foot_x": 25.3,
+    "foot_y_from_bottom": 2,
+    "fringe_pct": 5.57,
+    "black_matte_pct": 0.52,
+    "sharp": 62.3,
+    "mean_rgb_opaque": [
+      136.5,
+      92.4,
+      67.6
+    ]
+  },
+  "experimental_64x96": {
+    "path": "assets/sprites/characters/_experimental/kai/run_frame00/preview_64x96.png",
+    "canvas": [
+      64,
+      96
+    ],
+    "bbox": [
+      3,
+      9,
+      60,
+      93
+    ],
+    "bbox_wh": [
+      58,
+      85
+    ],
+    "opaque_pct": 31.48,
+    "foot_x": 41.6,
+    "foot_y_from_bottom": 2,
+    "fringe_pct": 10.63,
+    "black_matte_pct": 0.0,
+    "sharp": 73.85,
+    "mean_rgb_opaque": [
+      222.7,
+      154.9,
+      110.8
+    ]
+  },
+  "experimental_128x192": {
+    "path": "assets/sprites/characters/_experimental/kai/run_frame00/package/00.png",
+    "canvas": [
+      128,
+      192
+    ],
+    "bbox": [
+      6,
+      17,
+      121,
+      186
+    ],
+    "bbox_wh": [
+      116,
+      170
+    ],
+    "opaque_pct": 29.44,
+    "foot_x": 82.4,
+    "foot_y_from_bottom": 5,
+    "fringe_pct": 6.46,
+    "black_matte_pct": 0.0,
+    "sharp": 50.36,
+    "mean_rgb_opaque": [
+      222.0,
+      154.5,
+      111.2
+    ]
+  },
+  "deltas_64": {
+    "bbox_h_live_vs_exp": [
+      72,
+      85
+    ],
+    "bbox_h_ratio_exp_over_live": 1.181,
+    "foot_x_delta": 16.3,
+    "foot_pad_bottom_live_vs_exp": [
+      2,
+      2
+    ],
+    "sharp_live_vs_exp": [
+      62.3,
+      73.85
+    ],
+    "fringe_live_vs_exp": [
+      5.57,
+      10.63
+    ]
+  },
+  "gameplay_display_px": {
+    "w": 112,
+    "h": 168,
+    "DISPLAY_SCALE": 1.75
+  }
+}
