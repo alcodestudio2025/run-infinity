@@ -1,0 +1,112 @@
+{
+  "milestone": "M6.1-G",
+  "audited_at_base": "cab83b6d54e0850d77755646cfa4bee16a1cdcb9",
+  "canon_option": "A",
+  "verdict": "ALL_REQUIRED_PARTS_MISSING_MUST_AUTHOR_NEW",
+  "rule": "Do not promote auto-cuts, live frames, or experimental Frame 00 as final part plates.",
+  "sources_inspected": [
+    {
+      "path": "docs/previews/m6-1/approved-character-ref.jpg",
+      "kind": "full_body_illustration_sheet",
+      "usable_as_final_part": false,
+      "why": "Hero + pose icons; painted occlusion; limbs fused."
+    },
+    {
+      "path": "assets/sprites/characters/_source/kai_nova_sheet_approved.png",
+      "kind": "full_body_sheet",
+      "usable_as_final_part": false,
+      "why": "Same Option A design locked as reference only."
+    },
+    {
+      "path": "docs/previews/m6-1-f/feasibility_source_body.png",
+      "kind": "hero_crop",
+      "usable_as_final_part": false,
+      "why": "Reference proportions/costume only."
+    },
+    {
+      "path": "docs/previews/m6-1-f/auto_cut_parts/",
+      "kind": "auto_band_cut_evidence",
+      "usable_as_final_part": false,
+      "why": "M6.1-F proved bands slice through anatomy; missing L/R separation and occlusion paint."
+    },
+    {
+      "path": "assets/sprites/characters/kai/frames/",
+      "kind": "live_64x96_full_body",
+      "usable_as_final_part": false,
+      "why": "Limb bands ~15 px; soft AA; below min_edge quality bar."
+    },
+    {
+      "path": "assets/sprites/characters/_experimental/kai/run_frame00/",
+      "kind": "experimental_full_body",
+      "usable_as_final_part": false,
+      "why": "Not Option A costume; still one piece."
+    },
+    {
+      "path": "assets/sprites/characters/_incoming/kai/cutout_parts/",
+      "kind": "drop_slot",
+      "usable_as_final_part": false,
+      "why": "Only SPEC/README/STATUS — zero authored PNGs."
+    }
+  ],
+  "checklist": {
+    "required_for_run_poc": [
+      {"part": "head", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "torso", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "upper_arm_l", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "upper_arm_r", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "forearm_l", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "forearm_r", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "thigh_l", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "thigh_r", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "shin_l", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "shin_r", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "shoe_l", "status": "MISSING_DRAW_NEW", "reuse": null},
+      {"part": "shoe_r", "status": "MISSING_DRAW_NEW", "reuse": null}
+    ],
+    "optional_run_polish": [
+      {"part": "hand_l", "status": "DEFER", "note": "Fused into forearm for first RUN POC"},
+      {"part": "hand_r", "status": "DEFER", "note": "Fused into forearm for first RUN POC"},
+      {"part": "hair_front", "status": "DEFER", "note": "Keep in head.png initially"},
+      {"part": "hair_back", "status": "DEFER", "note": "Keep in head.png initially"},
+      {"part": "shorts_overlay", "status": "DEFER", "note": "Paint shorts on torso + thigh overlaps first"}
+    ],
+    "additional_for_jump_slide_grapple": [
+      {"part": "torso_twist_alt", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "forearm_reach_l", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "forearm_reach_r", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "thigh_slide_l", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "thigh_slide_r", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "shoe_slide_l", "status": "NOT_NEEDED_FOR_RUN_POC"},
+      {"part": "shoe_slide_r", "status": "NOT_NEEDED_FOR_RUN_POC"}
+    ],
+    "nova_reusable_later": [
+      {
+        "item": "bone_hierarchy_template",
+        "status": "REUSABLE_PATTERN",
+        "note": "Same hips→torso/head/arms/legs chain; Nova swaps sprites + ponytail bone."
+      },
+      {
+        "item": "pivot_uv_conventions",
+        "status": "REUSABLE_PATTERN",
+        "note": "Same joint UV conventions; different master_xy."
+      },
+      {
+        "item": "gate_script_quality_bar",
+        "status": "REUSABLE_TOOLING",
+        "note": "min_edge / opaque / anti-rect heuristics apply to Nova plates."
+      },
+      {
+        "item": "kai_png_parts",
+        "status": "NOT_REUSABLE",
+        "note": "Costume/identity differ — do not recolor Kai parts into Nova."
+      }
+    ]
+  },
+  "counts": {
+    "required_missing": 12,
+    "required_present": 0,
+    "optional_deferred": 5,
+    "action_pose_extras_deferred": 7
+  },
+  "production_ask": "Commission or author 12 Option A RGBA plates (+ front/side turnaround guide). Do not resume 30-PNG M6.1-D list until skeletal RUN POC clears."
+}

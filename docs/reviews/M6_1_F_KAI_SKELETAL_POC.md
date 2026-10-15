@@ -147,3 +147,6 @@ Deliver **one** Kai Option A cutout part plate:
 - Prefer authoring ≥128 px on the longest limb edge (game can downscale).
 
 Until then: skeletal POC remains **blocked**; M6.1-D PNG production remains **suspended**.
+
+**M6.1-G follow-up:** full commissionable contract (pivots, hierarchy, audit, RUN POC plan) lives in
+[`M6_1_G_CHARACTER_PARTS.md`](M6_1_G_CHARACTER_PARTS.md) — status `SPEC_READY_BLOCKED_ON_ART`.

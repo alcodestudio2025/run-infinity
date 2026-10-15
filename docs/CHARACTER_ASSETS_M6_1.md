@@ -22,6 +22,8 @@ Gameplay collision stays on `Player/CollisionShape2D` and never reads sprite bou
 
 **M6.1-F:** Kai canon = **Option A** (approved sheet: yellow/black raglan, maroon leggings). Experimental Frame 00 is not canonical. M6.1-D PNG production is **SUSPENDED** until a quality Option A cutout part plate clears skeletal feasibility (`docs/reviews/M6_1_F_KAI_SKELETAL_POC.md`). Do not fake Skeleton2D parts from band-cuts or rectangles.
 
+**M6.1-G:** Definitive part-plate art contract + pivot schema + asset audit (`docs/reviews/M6_1_G_CHARACTER_PARTS.md`, `_incoming/kai/cutout_parts/`). Status `SPEC_READY_BLOCKED_ON_ART` — 12 authored PNGs still missing. Validate with `scripts/tools/m6_1_g_part_plate_validate.py`. Do not touch `CharacterVisual` or resume the 30-PNG track here.
+
 ## Stable IDs
 
 | ID | Display | Tagline |

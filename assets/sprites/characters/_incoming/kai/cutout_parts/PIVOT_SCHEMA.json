@@ -1,0 +1,133 @@
+{
+  "milestone": "M6.1-G",
+  "character": "kai",
+  "canon_option": "A",
+  "coordinate_space": {
+    "origin": "top-left of each part PNG",
+    "units": "normalized_uv_0_to_1 inside that part's opaque-tight bbox padded to authored canvas",
+    "also_provide": "pixel_hint relative to recommended master assemble 512x768 with feet on bottom center"
+  },
+  "master_assemble_hint_px": {
+    "canvas": [512, 768],
+    "feet_ground_y": 740,
+    "hips_xy": [256, 430],
+    "facing": "right"
+  },
+  "pivots": {
+    "hips": {
+      "role": "root",
+      "master_xy": [256, 430],
+      "notes": "Pelvis center under shorts; RUN cycle root."
+    },
+    "torso": {
+      "sprite": "torso",
+      "pivot_uv": [0.5, 0.88],
+      "joint": "hips_to_torso",
+      "master_xy": [256, 430],
+      "attach_on_parent": "hips",
+      "notes": "Pivot at waist/hips join. Include shorts top + raglan torso. Neck stump at top-center ~uv (0.5, 0.08)."
+    },
+    "head": {
+      "sprite": "head",
+      "pivot_uv": [0.5, 0.82],
+      "joint": "neck",
+      "master_xy": [268, 210],
+      "attach_on_parent": "torso",
+      "notes": "Pivot at neck base under chin/headband. Hair spikes may extend above canvas; keep transparent margin >= 8 px."
+    },
+    "upper_arm_l": {
+      "sprite": "upper_arm_l",
+      "pivot_uv": [0.55, 0.12],
+      "joint": "shoulder_l",
+      "master_xy": [210, 300],
+      "attach_on_parent": "torso",
+      "side": "far (behind when facing right in default RUN contact)",
+      "notes": "Pivot at shoulder under raglan seam. Elbow end overlaps forearm."
+    },
+    "forearm_l": {
+      "sprite": "forearm_l",
+      "pivot_uv": [0.5, 0.1],
+      "joint": "elbow_l",
+      "master_xy": [175, 365],
+      "attach_on_parent": "upper_arm_l",
+      "notes": "Includes dark glove/fist for RUN POC. Pivot at elbow."
+    },
+    "upper_arm_r": {
+      "sprite": "upper_arm_r",
+      "pivot_uv": [0.45, 0.12],
+      "joint": "shoulder_r",
+      "master_xy": [310, 295],
+      "attach_on_parent": "torso",
+      "side": "near (in front when facing right)",
+      "notes": "Mirror of L with raglan black panel continuity."
+    },
+    "forearm_r": {
+      "sprite": "forearm_r",
+      "pivot_uv": [0.5, 0.1],
+      "joint": "elbow_r",
+      "master_xy": [355, 350],
+      "attach_on_parent": "upper_arm_r",
+      "notes": "Includes glove/fist. Near-arm usually highest z in RUN."
+    },
+    "thigh_l": {
+      "sprite": "thigh_l",
+      "pivot_uv": [0.5, 0.1],
+      "joint": "hip_l",
+      "master_xy": [230, 445],
+      "attach_on_parent": "hips",
+      "notes": "Maroon + shorts underside paint. Pivot at hip socket under shorts."
+    },
+    "shin_l": {
+      "sprite": "shin_l",
+      "pivot_uv": [0.5, 0.08],
+      "joint": "knee_l",
+      "master_xy": [215, 560],
+      "attach_on_parent": "thigh_l",
+      "notes": "Maroon mid-calf length. Knee overlap pad required."
+    },
+    "shoe_l": {
+      "sprite": "shoe_l",
+      "pivot_uv": [0.35, 0.25],
+      "joint": "ankle_l",
+      "master_xy": [200, 680],
+      "attach_on_parent": "shin_l",
+      "notes": "Yellow/white sneaker. Pivot at ankle; sole contact for RUN."
+    },
+    "thigh_r": {
+      "sprite": "thigh_r",
+      "pivot_uv": [0.5, 0.1],
+      "joint": "hip_r",
+      "master_xy": [290, 445],
+      "attach_on_parent": "hips",
+      "notes": "Leading/trailing depends on RUN phase; keep L/R distinct PNGs."
+    },
+    "shin_r": {
+      "sprite": "shin_r",
+      "pivot_uv": [0.5, 0.08],
+      "joint": "knee_r",
+      "master_xy": [320, 555],
+      "attach_on_parent": "thigh_r"
+    },
+    "shoe_r": {
+      "sprite": "shoe_r",
+      "pivot_uv": [0.35, 0.25],
+      "joint": "ankle_r",
+      "master_xy": [340, 675],
+      "attach_on_parent": "shin_r"
+    }
+  },
+  "run_poc_angle_limits_deg": {
+    "torso": [-8, 12],
+    "head": [-15, 15],
+    "upper_arm": [-40, 50],
+    "forearm": [-10, 95],
+    "thigh": [-35, 55],
+    "shin": [-10, 100],
+    "shoe": [-25, 35]
+  },
+  "validation": {
+    "each_part_must_contain_pivot_pixel_inside_opaque": true,
+    "pivot_marker_in_png": "forbidden (metadata only — do not bake red dots into art)",
+    "schema_file_shipped_with_parts": true
+  }
+}

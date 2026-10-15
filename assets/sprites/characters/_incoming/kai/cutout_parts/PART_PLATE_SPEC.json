@@ -1,13 +1,33 @@
 {
-  "milestone": "M6.1-F",
+  "milestone": "M6.1-G",
+  "extends": "M6.1-F",
   "canon_option": "A",
   "experimental_frame00_canonical": false,
-  "description": "Dedicated Kai cutout part plate for Skeleton2D POC. Full-body sheets, live 64x96 crops, and auto band-cuts are not accepted.",
+  "status": "SPEC_READY_BLOCKED_ON_ART",
+  "description": "Definitive Kai Option A cutout part-plate contract for Skeleton2D. Authored parts only — no sheet crops, auto band-cuts, or rectangle placeholders.",
   "costume_lock": {
-    "hair": "white spiked + dark headband",
-    "top": "yellow with black raglan panels/sleeves",
-    "bottom": "dark shorts over maroon leggings",
-    "shoes": "yellow/white athletic"
+    "hair": "white spiked + dark headband (star accent optional on band)",
+    "top": "yellow jersey with black raglan panels/sleeves + small chest mark",
+    "hands": "dark fingerless gloves (fuse into forearm for RUN POC)",
+    "bottom": "dark shorts over maroon mid-calf leggings",
+    "shoes": "yellow/white athletic sneakers"
+  },
+  "facing": "right (gameplay)",
+  "view": "3/4 side-front runner (match approved sheet pose language)",
+  "master_plate": {
+    "recommended_canvas_px": [512, 768],
+    "accepted_canvas_px": [[384, 576], [512, 768], [640, 960]],
+    "layout": "single turnaround sheet OR separate part PNGs; separate PNGs are the drop format",
+    "turnaround_required": ["front_neutral", "side_run_contact"],
+    "turnaround_optional": ["three_quarter_run", "back_neutral"]
+  },
+  "resolution": {
+    "min_edge_px": 64,
+    "preferred_longest_limb_edge_px": 128,
+    "authoring_target_longest_limb_edge_px": 160,
+    "game_downscale_ok": true,
+    "live_character_visual_canvas_px": [64, 96],
+    "note": "Part plates are authored larger than live AnimatedSprite2D; skeletal POC does not replace CharacterVisual canvas."
   },
   "required_parts": [
     "head",
@@ -23,17 +43,95 @@
     "shoe_l",
     "shoe_r"
   ],
+  "optional_parts_run_polish": [
+    "hand_l",
+    "hand_r",
+    "hair_front",
+    "hair_back",
+    "shorts_overlay"
+  ],
+  "optional_parts_jump_slide_grapple": [
+    "torso_twist_alt",
+    "forearm_reach_l",
+    "forearm_reach_r",
+    "thigh_slide_l",
+    "thigh_slide_r",
+    "shoe_slide_l",
+    "shoe_slide_r"
+  ],
   "file_pattern": "{part}.png",
   "format": "RGBA PNG",
-  "min_edge_px": 64,
   "min_opaque_pct": 8.0,
   "must_reconstruct_occlusions": true,
   "forbid_rect_placeholders": true,
+  "forbid_auto_cuts_as_final": true,
   "forbid_sources": [
     "docs/previews/m6-1-f/auto_cut_parts",
     "assets/sprites/characters/kai/frames",
     "_experimental/kai/run_frame00"
   ],
-  "preferred_authoring": "front + side (or front + 3/4) turnaround, limb edge >= 128 px",
-  "gate": "python3 scripts/tools/m6_1_f_skeletal_poc_scaffold.py"
+  "hierarchy": {
+    "root": "hips",
+    "bones": [
+      {"id": "hips", "parent": null, "sprite": null},
+      {"id": "torso", "parent": "hips", "sprite": "torso"},
+      {"id": "head", "parent": "torso", "sprite": "head"},
+      {"id": "upper_arm_l", "parent": "torso", "sprite": "upper_arm_l"},
+      {"id": "forearm_l", "parent": "upper_arm_l", "sprite": "forearm_l"},
+      {"id": "upper_arm_r", "parent": "torso", "sprite": "upper_arm_r"},
+      {"id": "forearm_r", "parent": "upper_arm_r", "sprite": "forearm_r"},
+      {"id": "thigh_l", "parent": "hips", "sprite": "thigh_l"},
+      {"id": "shin_l", "parent": "thigh_l", "sprite": "shin_l"},
+      {"id": "shoe_l", "parent": "shin_l", "sprite": "shoe_l"},
+      {"id": "thigh_r", "parent": "hips", "sprite": "thigh_r"},
+      {"id": "shin_r", "parent": "thigh_r", "sprite": "shin_r"},
+      {"id": "shoe_r", "parent": "shin_r", "sprite": "shoe_r"}
+    ]
+  },
+  "z_order_front_facing_right": [
+    "shoe_l",
+    "shin_l",
+    "thigh_l",
+    "upper_arm_l",
+    "forearm_l",
+    "torso",
+    "head",
+    "thigh_r",
+    "shin_r",
+    "shoe_r",
+    "upper_arm_r",
+    "forearm_r"
+  ],
+  "overlap_rules": {
+    "joint_pad_min_px_at_authoring": 12,
+    "joint_pad_preferred_px": 20,
+    "paint_hidden_volumes": true,
+    "notes": [
+      "Torso must include full yellow chest + black raglan under-arm fill where arms rotate away.",
+      "Thighs must include maroon fill under shorts hem; shorts hem painted on torso bottom OR shorts_overlay.",
+      "Shin must include maroon continuation under knee overlap with thigh.",
+      "Shoe must include ankle tongue/collar under shin hem.",
+      "Forearm includes glove; wrist overlap with upper_arm cuff.",
+      "Head includes headband + hair silhouette; neck stump overlaps torso collar."
+    ]
+  },
+  "pivot_schema_ref": "PIVOT_SCHEMA.json",
+  "asset_audit_ref": "ASSET_AUDIT.json",
+  "preferred_authoring": "front + side (or front + 3/4) turnaround, limb edge >= 128 px, Option A palette only",
+  "gate": "python3 scripts/tools/m6_1_f_skeletal_poc_scaffold.py",
+  "integration": {
+    "drop_dir": "assets/sprites/characters/_incoming/kai/cutout_parts",
+    "do_not_touch": [
+      "scripts/characters/CharacterVisual.gd",
+      "scenes/player/CharacterVisual.tscn",
+      "assets/sprites/characters/kai/frames",
+      "assets/sprites/characters/kai/sprite_frames.tres"
+    ],
+    "poc_scene_when_go": "scenes/dev/m6_1_f_kai_skeletal_poc.tscn",
+    "live_swap": false
+  },
+  "art_block": {
+    "blocked": true,
+    "reason": "No credible Option A authored part plates exist. Auto-cuts and full-body sheets are rejected. Spec + gate ready; artist must deliver PNGs."
+  }
 }
