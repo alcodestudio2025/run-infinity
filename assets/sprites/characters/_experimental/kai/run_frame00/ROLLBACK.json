@@ -1,0 +1,18 @@
+{
+  "milestone": "M6.1-E",
+  "purpose": "Preserve live Kai RUN cycle; experimental frame is preview-only",
+  "live_run_frames_sha256": {
+    "run_00.png": "24750f7efdb717afa4a407a2770329923514c61d5e0bf589828c5489261a895c",
+    "run_01.png": "7487f54ac2a4249645c02a1a3756fa59ce6d08f84ce75b87cdb5beba026b4a8f",
+    "run_02.png": "a285566c427a140a1bac14850df977a039f7c88c036d378652df58b761905bbc",
+    "run_03.png": "70f80ccd04d9c9d4e4c2af57edc62627c534b200747ceed343309a3a9a253676",
+    "run_04.png": "8586b461300a2aa4c467a159d69c429a8a4c9da1f144666184c0938481c7e03d",
+    "run_05.png": "312d1ee3edd6b52e683aeefa2307068e1e7702e491f07f9713962e70abf5b02f"
+  },
+  "experimental_source": "assets/sprites/characters/_experimental/kai/run_frame00/package/00.png",
+  "experimental_source_sha256": "52e2b3f5784e19e3fc22c2364e7c888ca3ff76c07060a4434435424de233aa9b",
+  "preview_64x96": "assets/sprites/characters/_experimental/kai/run_frame00/preview_64x96.png",
+  "preview_64x96_rgba_sha256": "7ff1bace8f550ad6f1a87783e825b641c92b14baadf4896e5fdc9272c792c793",
+  "gameplay_run_replaced": false,
+  "nova_touched": false
+}
